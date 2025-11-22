@@ -9,13 +9,13 @@ params = {
     "area": 113,  # регион (1 = Москва, 2 = Санкт-Петербург, 113 = Россия)
     "per_page": 10,  # сколько вакансий на страницу
     "page": 1,  # номер страницы
-    "only_with_salary": True  # фильтрация только по зарплате
+    "only_with_salary": True,  # фильтрация только по зарплате
+    "order_by": "publication_time"
 }
 
 response = requests.get(url=url, params=params)
 response = response.json()
-cont = 0
-lst = []
+
 print(response)
 for item in response.get('items'):
     # pprint(item.get('snippet'))
@@ -53,7 +53,8 @@ for item in response.get('items'):
 
     print('___PROFESSIONAL ROLE___')
     print('Количество ролей = ', item.get('professional_roles').__len__())
-    print('name = ', item.get('professional_roles')[0].get('name'))
+    for role in item.get('professional_roles'):
+        print('name = ', role.get('name'))
 
     print('___SEARCH QUERY___')
     print('Ключевое слово = ', params.get('text'))
@@ -68,9 +69,4 @@ for item in response.get('items'):
     print('published_at = ', item.get('published_at'))
     print('hh_vacancy_id = ', item.get('alternate_url'))
 
-    if item.get('professional_roles').__len__() != 1:
-        cont += 1
-        lst.append(item.get('area').get('id'))
 
-print(cont)
-print(lst)
