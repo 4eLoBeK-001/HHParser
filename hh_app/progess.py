@@ -1,7 +1,7 @@
 import os
 import json
 
-path = 'hh_app/progress.json'
+PATH = 'hh_app/progress.json'
 
 def load_json(path: str) -> dict:
     # Если файла нет - создаём новый
@@ -23,4 +23,4 @@ def next_page_json(path: str):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-next_page_json(path)
+next_page_json(PATH)
