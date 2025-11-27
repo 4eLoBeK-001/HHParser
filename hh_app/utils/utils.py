@@ -1,4 +1,14 @@
+from datetime import datetime, timedelta
+from http import HTTPStatus
+import re
+from rest_framework import status
+from django.core.management.base import BaseCommand
+import requests
+from pprint import pprint
 
+
+from hh_app.models import (Area, Salary, Employer, WorkFormat, WorkSchedule, 
+                            ProfessionalRole, SearchQuery, Experience, Skill, Vacancy)
 
 skill_list = [
     # Языки программирования
@@ -58,3 +68,130 @@ skill_list = [
     "eslint", "prettier",
 ]
 
+
+def create_area(item: dict):
+    area = item.get('area')
+    area_obj, _ = Area.objects.get_or_create(hh_area_id=area.get('id'), name=area.get('name'))
+    return area_obj
+
+
+def create_salary(item: dict):
+    salary = item.get('salary')
+    salary_obj, _ = Salary.objects.get_or_create(
+        salary_from=salary.get('from'), salary_to=salary.get('to'), 
+        currency=salary.get('currency'), gross=salary.get('gross')
+    )
+    return salary_obj
+
+
+def create_employer(item: dict):
+    employer = item.get('employer')
+    employer_obj, _ = Employer.objects.get_or_create(
+        hh_employer_id=employer.get('id'), name=employer.get('name'), url=employer.get('alternate_url')
+    )
+    return employer_obj
+
+
+def create_work_format(item: dict):
+    work_format = item.get('work_format')
+    if not work_format:
+        work_format_obj, _ = WorkFormat.objects.get_or_create(code_name=0, name='Не указано')
+    else:
+        work_format_obj, _ = WorkFormat.objects.get_or_create(code_name=work_format[0].get('id'), name=work_format[0].get('name'))
+
+    return work_format_obj
+
+
+def create_work_schedule(item: dict):
+    work_schedule = item.get('work_schedule_by_days')
+    working_hours = item.get('working_hours')[0].get('name')  or 'Не указано'
+    if not work_schedule:
+        work_schedule_obj, _ = WorkSchedule.objects.get_or_create(code_name=0, name='Не указано', working_hours='Не указано')
+    else:
+        work_schedule_obj, _ = WorkSchedule.objects.get_or_create(
+            code_name=work_schedule[0].get('id'), name=work_schedule[0].get('name'), working_hours=working_hours
+    )
+
+    return work_schedule_obj
+
+
+def create_proffesional_role(item: dict) -> list:
+    professional_roles = item.get('professional_roles')
+    if not professional_roles:
+        role_obj, _ = ProfessionalRole.objects.get_or_create(name='Профессиональная роль не указана')
+        return [role_obj]
+    
+    lst_roles = []
+    for role in professional_roles:
+        role_obj, _ = ProfessionalRole.objects.get_or_create(name=role.get('name'))
+        lst_roles.append(role_obj)
+    
+    return lst_roles
+
+
+def create_search_query(params: dict):
+    search_query = params.get('text')
+    search_query_obj, _ = SearchQuery.objects.get_or_create(name=search_query)
+
+    return search_query_obj
+
+
+def create_experience(item: dict):
+    experience = item.get('experience')
+    experience_obj, _ = Experience.objects.get_or_create(code_name=experience.get('id'), name=experience.get('name'))
+
+    return experience_obj
+
+
+def create_skills(item: dict) -> set:
+    lst_skills = set()
+    url = f"https://api.hh.ru/vacancies/{item.get('id')}"
+
+    response = requests.get(url).json()
+    key_skills = response.get('key_skills')
+    description = response.get('description')
+
+    for skill in key_skills:
+        skill_obj, _ = Skill.objects.get_or_create(name=skill.get('name').lower())
+        lst_skills.add(skill_obj)
+
+    description_lst = re.sub(r'[<>/().+,*]', ' ', description).split()
+    description_set = set(description_lst)
+
+    for i in description_set:
+        if i.lower() in skill_list:
+            skill_obj, _ = Skill.objects.get_or_create(name=i.lower())
+            lst_skills.add(skill_obj)
+    
+    return lst_skills
+
+
+def create_vacancy(item, params):
+    employer = create_employer(item)
+    area = create_area(item)
+    salary = create_salary(item)
+    work_format = create_work_format(item)
+    work_schedule = create_work_schedule(item)
+    experience = create_experience(item)
+    proffesional_role = create_proffesional_role(item)
+    search_query = create_search_query(params)
+    skills = create_skills(item)
+
+    vacancy_obj, _ = Vacancy.objects.get_or_create(
+        hh_vacancy_id=item.get('id'),
+        name=item.get('name'),
+        published_at=item.get('published_at'),
+        url=item.get('alternate_url'),
+        
+        employer=employer,
+        area=area,
+        salary=salary,
+        work_format=work_format,
+        work_schedule=work_schedule,
+        experience=experience,
+
+    )
+    
+    vacancy_obj.professional_roles.add(*proffesional_role)
+    vacancy_obj.search_query.add(search_query)
+    vacancy_obj.skills.add(*skills)
