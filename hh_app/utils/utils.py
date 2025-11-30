@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from http import HTTPStatus
 import re
+from typing import Any
 from rest_framework import status
 from django.core.management.base import BaseCommand
 import requests
@@ -9,6 +10,7 @@ from pprint import pprint
 
 from hh_app.models import (Area, Salary, Employer, WorkFormat, WorkSchedule, 
                             ProfessionalRole, SearchQuery, Experience, Skill, Vacancy)
+from hh_app.utils.types import HHExperience, HHVacancy, HHArea, HHEmployer, HHProfessionalRole, HHSalary, HHWorkFormatItem
 
 skill_list = [
     # Языки программирования
@@ -69,13 +71,13 @@ skill_list = [
 ]
 
 
-def create_area(item: dict):
+def create_area(item: HHVacancy) -> Area:
     area = item.get('area')
     area_obj, _ = Area.objects.get_or_create(hh_area_id=area.get('id'), name=area.get('name'))
     return area_obj
 
 
-def create_salary(item: dict):
+def create_salary(item: HHVacancy) -> Salary:
     salary = item.get('salary')
     salary_obj, _ = Salary.objects.get_or_create(
         salary_from=salary.get('from'), salary_to=salary.get('to'), 
@@ -84,7 +86,7 @@ def create_salary(item: dict):
     return salary_obj
 
 
-def create_employer(item: dict):
+def create_employer(item: HHVacancy) -> Employer:
     employer = item.get('employer')
     employer_obj, _ = Employer.objects.get_or_create(
         hh_employer_id=employer.get('id'), name=employer.get('name'), url=employer.get('alternate_url')
@@ -92,7 +94,7 @@ def create_employer(item: dict):
     return employer_obj
 
 
-def create_work_format(item: dict):
+def create_work_format(item: dict[str, Any]) -> WorkFormat:
     work_format = item.get('work_format')
     if not work_format:
         work_format_obj, _ = WorkFormat.objects.get_or_create(code_name=0, name='Не указано')
@@ -102,7 +104,7 @@ def create_work_format(item: dict):
     return work_format_obj
 
 
-def create_work_schedule(item: dict):
+def create_work_schedule(item: HHVacancy) -> WorkSchedule:
     work_schedule = item.get('work_schedule_by_days')
     working_hours = item.get('working_hours')[0].get('name')  or 'Не указано'
     if not work_schedule:
@@ -115,7 +117,7 @@ def create_work_schedule(item: dict):
     return work_schedule_obj
 
 
-def create_proffesional_role(item: dict) -> list:
+def create_proffesional_role(item: HHVacancy) -> list[ProfessionalRole]:
     professional_roles = item.get('professional_roles')
     if not professional_roles:
         role_obj, _ = ProfessionalRole.objects.get_or_create(name='Профессиональная роль не указана')
@@ -129,21 +131,21 @@ def create_proffesional_role(item: dict) -> list:
     return lst_roles
 
 
-def create_search_query(params: dict):
-    search_query = params.get('text')
+def create_search_query(params: dict[str, str]) -> SearchQuery:
+    search_query = params.get('text').lower()
     search_query_obj, _ = SearchQuery.objects.get_or_create(name=search_query)
 
     return search_query_obj
 
 
-def create_experience(item: dict):
+def create_experience(item: HHVacancy) -> Experience:
     experience = item.get('experience')
     experience_obj, _ = Experience.objects.get_or_create(code_name=experience.get('id'), name=experience.get('name'))
 
     return experience_obj
 
 
-def create_skills(item: dict) -> set:
+def create_skills(item: HHVacancy) -> set[Skill]:
     lst_skills = set()
     url = f"https://api.hh.ru/vacancies/{item.get('id')}"
 
@@ -166,7 +168,7 @@ def create_skills(item: dict) -> set:
     return lst_skills
 
 
-def create_vacancy(item, params):
+def create_vacancy(item: HHVacancy, params: dict[str, str]) -> Vacancy:
     employer = create_employer(item)
     area = create_area(item)
     salary = create_salary(item)
@@ -177,21 +179,22 @@ def create_vacancy(item, params):
     search_query = create_search_query(params)
     skills = create_skills(item)
 
-    vacancy_obj, _ = Vacancy.objects.get_or_create(
+    vacancy_obj, created = Vacancy.objects.update_or_create(
         hh_vacancy_id=item.get('id'),
-        name=item.get('name'),
-        published_at=item.get('published_at'),
-        url=item.get('alternate_url'),
-        
-        employer=employer,
-        area=area,
-        salary=salary,
-        work_format=work_format,
-        work_schedule=work_schedule,
-        experience=experience,
-
+        defaults= {
+            'name': item.get('name'),
+            'published_at': item.get('published_at'),
+            'url': item.get('alternate_url'),
+            
+            'employer': employer,
+            'area': area,
+            'salary': salary,
+            'work_format': work_format,
+            'work_schedule': work_schedule,
+            'experience': experience,
+        }
     )
     
-    vacancy_obj.professional_roles.add(*proffesional_role)
+    vacancy_obj.professional_roles.set(proffesional_role)
     vacancy_obj.search_query.add(search_query)
-    vacancy_obj.skills.add(*skills)
+    vacancy_obj.skills.set(skills)
