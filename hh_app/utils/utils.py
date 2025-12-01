@@ -145,27 +145,28 @@ def create_experience(item: HHVacancy) -> Experience:
     return experience_obj
 
 
+
+skill_cache = {s.name for s in Skill.objects.only("name")}
+
 def create_skills(item: HHVacancy) -> set[Skill]:
-    lst_skills = set()
-    url = f"https://api.hh.ru/vacancies/{item.get('id')}"
-
+    url = f"https://api.hh.ru/vacancies/{item['id']}?fields=key_skills"
     response = requests.get(url).json()
-    key_skills = response.get('key_skills')
-    description = response.get('description')
+    key_skills = {skill['name'].lower() for skill in response.get('key_skills', [])}
 
-    for skill in key_skills:
-        skill_obj, _ = Skill.objects.get_or_create(name=skill.get('name').lower())
-        lst_skills.add(skill_obj)
+    description = response.get('description', '')
+    description_set = set(re.sub(r'[<>/().+,*]', ' ', description).lower().split())
 
-    description_lst = re.sub(r'[<>/().+,*]', ' ', description).split()
-    description_set = set(description_lst)
+    skill_from_description = description_set.intersection(skill_list)
+    total_skills = key_skills.union(skill_from_description)
 
-    for i in description_set:
-        if i.lower() in skill_list:
-            skill_obj, _ = Skill.objects.get_or_create(name=i.lower())
-            lst_skills.add(skill_obj)
-    
-    return lst_skills
+    new_skills = total_skills - skill_cache  # те, которых ещё нет в БД
+
+    Skill.objects.bulk_create([Skill(name=name) for name in new_skills])
+
+    # обновляем кэш
+    skill_cache.update(new_skills)
+
+    return set(Skill.objects.filter(name__in=total_skills))
 
 
 def create_vacancy(item: HHVacancy, params: dict[str, str]) -> Vacancy:
