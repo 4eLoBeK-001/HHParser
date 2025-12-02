@@ -43,8 +43,8 @@ class HHVacancy(TypedDict):
     area: HHArea
     salary: NotRequired[HHSalary]
     work_format: NotRequired[list[HHWorkFormatItem]]
-    work_schedule_by_days: NotRequired[list[dict[str, str]]]
-    working_hours: NotRequired[list[dict[str, str]]]
+    work_schedule_by_days: NotRequired[list[HHWorkFormatItem]]
+    working_hours: NotRequired[list[HHWorkFormatItem]]
     experience: HHExperience
     professional_roles: NotRequired[list[HHProfessionalRole]]
 
