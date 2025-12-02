@@ -17,7 +17,7 @@ class Command(BaseCommand):
         params = {
             "text": "Python разработчик",
             "area": 113,
-            "per_page": 50,
+            "per_page": 5,
             "page": 0,
             "only_with_salary": "True",
             "order_by": "publication_time"

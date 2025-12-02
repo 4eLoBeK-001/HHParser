@@ -5,6 +5,7 @@ from pprint import pprint
 
 from hh_app.models import (Area, Salary, Employer, WorkFormat, WorkSchedule, 
                             ProfessionalRole, SearchQuery, Experience, Skill, Vacancy)
+from hh_app.utils.skill_cache import SkillCache
 from hh_app.utils.types import HHVacancy
 
 skill_list = [
@@ -140,25 +141,29 @@ def create_experience(item: HHVacancy) -> Experience:
     return experience_obj
 
 
-skill_cache = {s.name for s in Skill.objects.only("name")}
-
 def create_skills(item: HHVacancy) -> set[Skill]:
+    cache = SkillCache.get()
+
     url = f"https://api.hh.ru/vacancies/{item['id']}?fields=key_skills,description"
     response = requests.get(url).json()
-    key_skills = {skill['name'].lower() for skill in response.get('key_skills', [])}
+    
+    key_skills = {
+        skill['name'].lower() for skill in response.get('key_skills', [])
+    }
 
     description = response.get('description', '')
-    description_set = set(re.sub(r'[<>/().+,*]', ' ', description).lower().split())
+    description_set = set(
+        re.sub(r'[<>/().+,*]', ' ', description).lower().split()
+    )
 
     skill_from_description = description_set.intersection(skill_list)
+    
     total_skills = key_skills.union(skill_from_description)
+    new_skills = total_skills - cache  # те, которых ещё нет в БД
 
-    new_skills = total_skills - skill_cache  # те, которых ещё нет в БД
-
-    Skill.objects.bulk_create([Skill(name=name) for name in new_skills])
-
-    # обновляем кэш
-    skill_cache.update(new_skills)
+    if new_skills:
+        Skill.objects.bulk_create([Skill(name=name) for name in new_skills])
+        SkillCache.add(new_skills)
 
     return set(Skill.objects.filter(name__in=total_skills))
 
