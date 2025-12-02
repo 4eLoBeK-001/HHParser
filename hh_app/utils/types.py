@@ -8,7 +8,7 @@ class HHArea(TypedDict):
 class HHEmployer(TypedDict):
     id: str
     name: str
-    altermate_url: str
+    alternate_url: str
 
 
 class HHWorkFormatItem(TypedDict):
@@ -44,7 +44,7 @@ class HHVacancy(TypedDict):
     salary: NotRequired[HHSalary]
     work_format: NotRequired[list[HHWorkFormatItem]]
     work_schedule_by_days: NotRequired[list[dict[str, str]]]
-    work_hours: NotRequired[list[dict[str, str]]]
+    working_hours: NotRequired[list[dict[str, str]]]
     experience: HHExperience
     professional_roles: NotRequired[list[HHProfessionalRole]]
 

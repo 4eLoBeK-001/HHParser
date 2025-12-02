@@ -1,16 +1,11 @@
-from datetime import datetime, timedelta
-from http import HTTPStatus
 import re
-from typing import Any
-from rest_framework import status
-from django.core.management.base import BaseCommand
 import requests
+from typing import Any
 from pprint import pprint
-
 
 from hh_app.models import (Area, Salary, Employer, WorkFormat, WorkSchedule, 
                             ProfessionalRole, SearchQuery, Experience, Skill, Vacancy)
-from hh_app.utils.types import HHExperience, HHVacancy, HHArea, HHEmployer, HHProfessionalRole, HHSalary, HHWorkFormatItem
+from hh_app.utils.types import HHVacancy
 
 skill_list = [
     # Языки программирования
@@ -145,11 +140,10 @@ def create_experience(item: HHVacancy) -> Experience:
     return experience_obj
 
 
-
 skill_cache = {s.name for s in Skill.objects.only("name")}
 
 def create_skills(item: HHVacancy) -> set[Skill]:
-    url = f"https://api.hh.ru/vacancies/{item['id']}?fields=key_skills"
+    url = f"https://api.hh.ru/vacancies/{item['id']}?fields=key_skills,description"
     response = requests.get(url).json()
     key_skills = {skill['name'].lower() for skill in response.get('key_skills', [])}
 
