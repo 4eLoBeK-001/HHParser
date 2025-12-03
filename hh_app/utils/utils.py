@@ -5,6 +5,7 @@ from pprint import pprint
 
 from hh_app.models import (Area, Salary, Employer, WorkFormat, WorkSchedule, 
                             ProfessionalRole, SearchQuery, Experience, Skill, Vacancy)
+from hh_app.utils.session import HHSession
 from hh_app.utils.skill_cache import SkillCache
 from hh_app.utils.types import HHVacancy
 
@@ -143,9 +144,14 @@ def create_experience(item: HHVacancy) -> Experience:
 
 def create_skills(item: HHVacancy) -> set[Skill]:
     cache = SkillCache.get()
+    session = HHSession.get()
 
-    url = f"https://api.hh.ru/vacancies/{item['id']}?fields=key_skills,description"
-    response = requests.get(url).json()
+    url = f"https://api.hh.ru/vacancies/{item['id']}"
+    response = session.get(
+        url,
+        params={'fields': 'key_skills,description'},
+        timeout=10
+    ).json()
     
     key_skills = {
         skill['name'].lower() for skill in response.get('key_skills', [])
@@ -168,7 +174,7 @@ def create_skills(item: HHVacancy) -> set[Skill]:
     return set(Skill.objects.filter(name__in=total_skills))
 
 
-def create_vacancy(item: HHVacancy, params: dict[str, str]) -> Vacancy:
+def create_vacancy(item: HHVacancy, params: dict[str, str]) -> bool:
     employer = create_employer(item)
     area = create_area(item)
     salary = create_salary(item)
@@ -198,3 +204,5 @@ def create_vacancy(item: HHVacancy, params: dict[str, str]) -> Vacancy:
     vacancy_obj.professional_roles.set(proffesional_role)
     vacancy_obj.search_query.add(search_query)
     vacancy_obj.skills.set(skills)
+
+    return created

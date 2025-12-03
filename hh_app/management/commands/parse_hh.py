@@ -24,6 +24,8 @@ class Command(BaseCommand):
             "order_by": "publication_time"
         }
 
+        stop = False
+
         while True:
             session = HHSession.get().get(url, params=params, timeout=15)
 
@@ -31,11 +33,18 @@ class Command(BaseCommand):
                 data = session.json()
                 found = data.get('found', 0)
 
-                print('Пятидесятка пошла')
-
                 for item in data.get('items'):
-                    create_vacancy(item, params)
+                    is_new = create_vacancy(item, params)
+                    
+                    if not is_new:
+                        stop = True
+                        break
                     time.sleep(0.3)
+                
+                if stop:
+                    print('цикл прерван')
+                    break
+
                 time.sleep(3)
 
                 params['page'] += 1
