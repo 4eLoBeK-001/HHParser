@@ -67,7 +67,7 @@ skill_list = [
     "eslint", "prettier",
 ]
 
-
+is_stop = False
 def create_area(item: HHVacancy) -> Area:
     area = item.get('area')
     area_obj, _ = Area.objects.get_or_create(hh_area_id=area.get('id'), name=area.get('name'))
@@ -175,6 +175,17 @@ def create_skills(item: HHVacancy) -> set[Skill]:
 
 
 def create_vacancy(item: HHVacancy, params: dict[str, str]) -> bool:
+    vacancy_id = item.get('id')
+    search_query = create_search_query(params)
+
+    vacancy = Vacancy.objects.filter(hh_vacancy_id=vacancy_id).first()
+    # Если вакансия существует
+    if vacancy:
+        # добавляем search_query если его ещё нет
+        if not vacancy.search_query.filter(id=search_query.id).exists():
+            vacancy.search_query.add(search_query)
+        return True
+
     employer = create_employer(item)
     area = create_area(item)
     salary = create_salary(item)
@@ -182,11 +193,10 @@ def create_vacancy(item: HHVacancy, params: dict[str, str]) -> bool:
     work_schedule = create_work_schedule(item)
     experience = create_experience(item)
     proffesional_role = create_proffesional_role(item)
-    search_query = create_search_query(params)
     skills = create_skills(item)
 
     vacancy_obj, created = Vacancy.objects.update_or_create(
-        hh_vacancy_id=item.get('id'),
+        hh_vacancy_id=vacancy_id,
         defaults= {
             'name': item.get('name'),
             'published_at': item.get('published_at'),
@@ -202,7 +212,9 @@ def create_vacancy(item: HHVacancy, params: dict[str, str]) -> bool:
     )
     
     vacancy_obj.professional_roles.set(proffesional_role)
-    vacancy_obj.search_query.add(search_query)
     vacancy_obj.skills.set(skills)
+
+    vacancy_obj.search_query.add(search_query)
+
 
     return created

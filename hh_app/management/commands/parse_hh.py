@@ -16,7 +16,7 @@ class Command(BaseCommand):
         url = "https://api.hh.ru/vacancies"
 
         params = {
-            "text": "Python разработчик",
+            "text": "fastapi",
             "area": 113,
             "per_page": 50,
             "page": 0,
@@ -24,7 +24,7 @@ class Command(BaseCommand):
             "order_by": "publication_time"
         }
 
-        stop = False
+        created = 0
 
         while True:
             session = HHSession.get().get(url, params=params, timeout=15)
@@ -32,18 +32,14 @@ class Command(BaseCommand):
             if session.status_code == status.HTTP_200_OK:
                 data = session.json()
                 found = data.get('found', 0)
+                
+                print('пятидесятка пошла')
 
                 for item in data.get('items'):
-                    is_new = create_vacancy(item, params)
-                    
-                    if not is_new:
-                        stop = True
-                        break
+                    is_created = create_vacancy(item, params)
+                    if is_created == False:
+                        created += 1
                     time.sleep(0.3)
-                
-                if stop:
-                    print('цикл прерван')
-                    break
 
                 time.sleep(3)
 
@@ -52,3 +48,4 @@ class Command(BaseCommand):
                     break
 
         print('Парсинг завершён. Всего', found, 'вакансий')
+        print(f'из {found} вакансий было: \n {found-created} существующих и \n {created} создано')
