@@ -37,7 +37,7 @@ class Command(BaseCommand):
 
                 for item in data.get('items'):
                     is_created = create_vacancy(item, params)
-                    if is_created == False:
+                    if is_created:
                         created += 1
                     time.sleep(0.3)
 

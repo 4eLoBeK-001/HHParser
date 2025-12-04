@@ -175,6 +175,14 @@ def create_skills(item: HHVacancy) -> set[Skill]:
 
 
 def create_vacancy(item: HHVacancy, params: dict[str, str]) -> bool:
+    """
+       Создаёт вакансию.
+       Возвращает:
+           bool:
+               True - вакансия была создана впервые.
+               False - вакансия уже существовала и не была пересоздана.
+    """
+
     vacancy_id = item.get('id')
     search_query = create_search_query(params)
 
@@ -184,7 +192,7 @@ def create_vacancy(item: HHVacancy, params: dict[str, str]) -> bool:
         # добавляем search_query если его ещё нет
         if not vacancy.search_query.filter(id=search_query.id).exists():
             vacancy.search_query.add(search_query)
-        return True
+        return False
 
     employer = create_employer(item)
     area = create_area(item)
