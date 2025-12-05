@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404, render
+from django.db.models import Count, Avg, F, FloatField, IntegerField
+from django.db.models.functions import Round, Cast
 
-from hh_app.models import SearchQuery, Vacancy
+from hh_app.models import Experience, SearchQuery, Vacancy
 from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
@@ -25,4 +27,25 @@ def main_page(request):
 
 
 def detailed_statistics(request, search_query):
-    return render(request, 'hh_app/detailed_statistics.html')
+    search_query = get_object_or_404(SearchQuery, name=search_query)
+    experiences = Experience.objects.all()
+    result = (
+        Vacancy.objects
+        .values('experience__code_name')
+        .annotate(
+            count=Count('id'), 
+            salary_avg=Cast(
+                Round(Avg((F('salary__salary_from')+F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
+                    output_field=FloatField()
+                ), output_field=IntegerField()
+            ),
+        )
+        .filter(search_query=search_query, salary__currency='RUR')
+    )
+
+    context = {
+        'search_query': search_query,
+        'experiences': experiences.order_by('code_name'),
+        'result': result,
+    }
+    return render(request, 'hh_app/detailed_statistics.html', context)
