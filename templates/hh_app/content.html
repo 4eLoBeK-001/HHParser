@@ -25,15 +25,26 @@
         </div>
 
         <!-- Результаты поиска -->
-        <div class="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-gray-300">
-            <div class="flex gap-10 text-lg">
-                <p><span class="font-bold">Всего:</span> 250 вакансий</p>
+        {% if vacancies %}
+        <div class="flex justify-center items-center p-6 bg-white rounded-xl border border-green-300 shadow-sm mb-6">
+            <h1 class="text-3xl font-bold text-green-700 text-center tracking-wide">
+                Поиск по запросу: {{ search_query.name }}
+            </h1>
+        </div>
+        
+        
+        <div class="flex items-center justify-between p-5 bg-slate-50 rounded-xl border border-gray-400">
+            <div class="flex gap-10 text-2xl text-gray-700">
+                <p><span class="font-bold"></span> 
+                    Всего: {{ vacancies.count }} вакансий
+                </p>
                 <p><span class="font-bold">Статистика:</span> доступна</p>
             </div>
-            <a class="btn btn-outline btn-accent">
+            <a href="{% url 'hh_app:detailed_statistics' search_query %}" target="_blank" class="btn btn-outline btn-accent text-lg">
                 Подробнее
             </a>
         </div>
+        {% endif %}
 
     </div>
 </div>
