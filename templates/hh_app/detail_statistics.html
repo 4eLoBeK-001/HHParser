@@ -1,0 +1,84 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+
+<div id="content" class="max-w-7xl mx-auto mt-12 p-6">
+
+    <!-- Заголовок -->
+    <h1 class="text-center text-5xl font-extrabold mb-10 text-gray-800">
+        Детальная статистика
+    </h1>
+    <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+                
+        <h2 class="text-2xl text-center font-semibold mb-6 text-gray-700">
+            Поисковое слово: {{search_query}}
+        </h2>
+        <h2 class="text-2xl text-center font-semibold mb-6 text-gray-700">
+            Количество вакансий: {{count_vacancies.vac_count}} | Количество работодателей: {{count_vacancies.emp_count}}
+        </h2>
+        <div class="overflow-x-auto mt-6">
+            <div class="mt-8">
+                <h1 class="text-2xl text-center font-semibold mb-6 text-gray-700">
+                        Заголовок
+                </h1>
+            
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
+    
+                    {% for skill in work_format_statistics %}
+                    <div class="p-4 bg-white rounded-xl shadow border border-green-200">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-semibold text-gray-800">{{skill.work_format__name}}</span>
+                            <span class="font-bold text-green-700">{{skill.percent}}%</span>
+                        </div>
+                        <progress class="progress progress-success w-full" value="{{skill.percent}}" max="100"></progress>
+                    </div>
+                    {% endfor %}
+    
+                </div>
+    
+                 <div class="flex justify-center mt-8">
+                    <a href=""
+                    class="btn btn-success w-[20%] min-w-[200px] max-w-[25%] text-white text-center text-lg
+                            shadow-lg hover:shadow-xl transition-all duration-300">
+                        Кнопка
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="overflow-x-auto mt-6">
+            <div class="mt-8">
+                <h1 class="text-2xl text-center font-semibold mb-6 text-gray-700">
+                    Самые частоиспользуемые технологии
+                </h1>
+            
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-lg">
+    
+                    {% for skill in skill_statistics %}
+                    <div class="p-4 bg-white rounded-xl shadow border border-green-200">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-semibold text-gray-800">{{skill.skills__name}}</span>
+                            <span class="font-bold text-green-700">{{skill.percent}}%</span>
+                        </div>
+                        <progress class="progress progress-success w-full" value="{{skill.percent}}" max="100"></progress>
+                    </div>
+                    {% endfor %}
+    
+                </div>
+    
+                 <div class="flex justify-center mt-8">
+                    <a href=""
+                    class="btn btn-success w-[20%] min-w-[200px] max-w-[25%] text-white text-center text-lg
+                            shadow-lg hover:shadow-xl transition-all duration-300">
+                        Кнопка
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock content %}

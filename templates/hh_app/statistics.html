@@ -47,7 +47,7 @@
                             <td class="text-center border border-gray-300 px-1 py-3">{{res.salary_avg}} руб.</td>
                         {% endfor %}
                     </tr>
-                </tbody>traitстати
+                </tbody>
         
             </table>
         </div>
@@ -71,8 +71,15 @@
 
             </div>
 
+             <div class="flex justify-center mt-8">
+                <a href="{% url 'hh_app:detail_statistics' search_query %}"
+                class="btn btn-success w-[20%] min-w-[200px] max-w-[25%] text-white text-center text-lg
+                        shadow-lg hover:shadow-xl transition-all duration-300">
+                    Узнать подробнее
+                </a>
+            </div>
         </div>
-        
+
     </div>
 </div>
 {% endblock content %}
