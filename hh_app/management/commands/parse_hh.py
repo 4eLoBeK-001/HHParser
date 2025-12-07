@@ -16,7 +16,7 @@ class Command(BaseCommand):
         url = "https://api.hh.ru/vacancies"
 
         params = {
-            "text": "fastapi",
+            "text": "django",
             "area": 113,
             "per_page": 50,
             "page": 0,
@@ -44,6 +44,7 @@ class Command(BaseCommand):
                 time.sleep(3)
 
                 params['page'] += 1
+                # Если страницы закончились завершаем цикл
                 if params['page'] > data.get('pages', 0):
                     break
 
