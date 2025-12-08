@@ -129,11 +129,27 @@ def detail_statistics(request, search_query):
             **item,
             "percent": round(percent, 1)
         })
+    experiences = Experience.objects.all().order_by('id')
+    result = (
+        Vacancy.objects
+        .values('experience__code_name')
+        .annotate(
+            count=Count('id'), 
+            salary_avg=Cast(
+                Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
+                output_field=IntegerField()
+            ),
+        )
+        .filter(search_query=search_query, salary__currency='RUR')
+        .order_by('experience__id')
+    )
     context = {
         'search_query': search_query,
         'count_vacancies': count_vacancies,
         'skill_statistics': skill_statistics,
         'work_format_statistics': work_format_statistics,
         'prof_roles_statistics': prof_roles_statistics,
+        'experiences': experiences,
+        'result': result,
     }
     return render(request, 'hh_app/detail_statistics.html', context)
