@@ -1,0 +1,135 @@
+
+<div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <!-- Заголовок таблицы -->
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                Статистика по опыту работы
+            </h2>
+            <span class="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-green-200">
+                {{ result|length }} категории
+            </span>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <!-- Заголовки столбцов -->
+            <thead>
+                <tr class="bg-gray-50">
+                    <th class="text-left py-4 px-6 font-semibold text-gray-700 text-lg border-b border-gray-200 min-w-[180px]">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Метрика
+                        </div>
+                    </th>
+                    {% for experience in experiences %}
+                    <th class="text-center py-4 px-4 font-bold text-gray-800 border-b border-gray-200 min-w-[120px]">
+                        <div class="flex flex-col items-center">
+                            <span>{{experience.name}}</span>
+                            {% with forloop.counter0 as index %}
+                            {% if result|length > index %}
+                                <span class="text-xs font-normal text-gray-500 mt-1">
+                                    {{ result.index.count }} 
+                                </span>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <!-- Тело таблицы -->
+            <tbody class="divide-y divide-gray-100">
+                <!-- Строка с количеством вакансий -->
+                <tr class="hover:bg-green-50 transition-colors group">
+                    <td class="py-4 px-6 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 flex items-center justify-center bg-green-100 text-green-700 rounded-lg">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">Количество вакансий</div>
+                                <div class="text-sm text-gray-500">На каждый опыт работы</div>
+                            </div>
+                        </div>
+                    </td>
+                    {% for res in result %}
+                    <td class="text-center py-4 px-4 border-b border-gray-200">
+                        <div class="flex flex-col items-center">
+                            <span class="text-xl font-bold text-green-700">{{res.count}}</span>
+                            {% if res.percent %}
+                            <span class="text-xs text-gray-500 mt-1">
+                                {{res.percent}}%
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Строка со средней ЗП -->
+                <tr class="hover:bg-green-50 transition-colors group">
+                    <td class="py-4 px-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">Средняя зарплата</div>
+                                <div class="text-sm text-gray-500">Рублей в месяц</div>
+                            </div>
+                        </div>
+                    </td>
+                    {% for res in result %}
+                    <td class="text-center py-4 px-4">
+                        <div class="flex flex-col items-center">
+                            <span class="text-xl font-bold text-emerald-700">{{res.salary_avg}} ₽</span>
+                            {% if res.salary_min and res.salary_max %}
+                            <div class="text-xs text-gray-500 mt-1">
+                                от {{res.salary_min}} до {{res.salary_max}}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Футер таблицы -->
+    {% if result|length > 0 %}
+    <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+        <div class="flex justify-between items-center text-sm text-gray-600">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <span>Данные актуальны на {{ "now"|date:"d.m.Y" }}</span>
+            </div>
+            <div class="flex items-center gap-4">
+                {% for res in result %}
+                    {% if forloop.first %}
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span>Наиболее популярный опыт</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

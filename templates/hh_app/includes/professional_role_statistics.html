@@ -1,0 +1,28 @@
+
+<div class="lg:col-span-1 bg-white rounded-2xl shadow-lg border border-gray-100 p-5">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+            </svg>
+            Профессиональные роли
+        </h2>
+        <span class="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">
+            Топ-3
+        </span>
+    </div>
+    
+    {% for prof_role in prof_roles_statistics %}
+    <div class="mb-5">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-medium text-gray-700 truncate">{{prof_role.professional_roles__name}}</span>
+            <span class="font-bold text-green-700 text-lg">{{prof_role.percent}}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-3">
+            <div class="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full transition-all duration-500" 
+                 style="width: {{prof_role.percent}}%"></div>
+        </div>
+        <div class="text-right text-sm text-gray-500 mt-1">{{prof_role.count}} вакансий</div>
+    </div>
+    {% endfor %}
+</div>
