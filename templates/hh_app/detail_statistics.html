@@ -20,7 +20,38 @@
         <div class="overflow-x-auto mt-6">
             <div class="mt-8">
                 <h1 class="text-2xl text-center font-semibold mb-6 text-gray-700">
-                        Заголовок
+                    Профессиональные роли
+                </h1>
+            
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-lg">
+    
+                    {% for prof_role in prof_roles_statistics %}
+                    <div class="p-4 bg-white rounded-xl shadow border border-green-200">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-semibold text-gray-800">{{prof_role.professional_roles__name}}</span>
+                            <span class="font-bold text-green-700">{{prof_role.percent}}%</span>
+                        </div>
+                        <progress class="progress progress-success w-full" value="{{prof_role.percent}}" max="100"></progress>
+                    </div>
+                    {% endfor %}
+    
+                </div>
+    
+                 <div class="flex justify-center mt-8">
+                    <a href=""
+                    class="btn btn-success w-[20%] min-w-[200px] max-w-[25%] text-white text-center text-lg
+                            shadow-lg hover:shadow-xl transition-all duration-300">
+                        Кнопка
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="overflow-x-auto mt-6">
+            <div class="mt-8">
+                <h1 class="text-2xl text-center font-semibold mb-6 text-gray-700">
+                    Распределение форматов работы
                 </h1>
             
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">

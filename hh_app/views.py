@@ -113,11 +113,27 @@ def detail_statistics(request, search_query):
             **item,
             "percent": round(percent, 1)
         })
-
+    
+    prof_roles = (
+        Vacancy.objects
+        .values('professional_roles__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+        .filter(search_query=search_query, salary__currency='RUR')
+        [:3]
+    ) 
+    prof_roles_statistics = []
+    for item in prof_roles:
+        percent = (item["count"] / count_vacancies.get('vac_count')) * 100 if count_vacancies.get('vac_count') else 0
+        prof_roles_statistics.append({
+            **item,
+            "percent": round(percent, 1)
+        })
     context = {
         'search_query': search_query,
         'count_vacancies': count_vacancies,
         'skill_statistics': skill_statistics,
         'work_format_statistics': work_format_statistics,
+        'prof_roles_statistics': prof_roles_statistics,
     }
     return render(request, 'hh_app/detail_statistics.html', context)
