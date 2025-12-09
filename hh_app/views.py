@@ -7,8 +7,14 @@ from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
 
+def home_page(request):
+    
+    context = {
+    }
+    return render(request, 'hh_app/content.html', context)
 
-def main_page(request):
+
+def searchquery_page(request):
     vacancies = None
     search_query = None
     if request.method == 'POST':
@@ -89,7 +95,7 @@ def detail_statistics(request, search_query):
         .annotate(count=Count('id'))
         .filter(search_query=search_query, salary__currency='RUR')
         .order_by('-count')
-        [:18]
+        [:15]
     )
     skill_statistics = []
     for item in raw_skills:
