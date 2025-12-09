@@ -8,10 +8,10 @@ from hh_parser.forms import SearchQueryForm
 # Create your views here.
 
 def home_page(request):
-    
+
     context = {
     }
-    return render(request, 'hh_app/content.html', context)
+    return render(request, 'hh_app/home.html', context)
 
 
 def searchquery_page(request):
