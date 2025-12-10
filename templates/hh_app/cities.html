@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div id="content" class="max-w-6xl mx-auto mt-12 p-6 space-y-10">
+
+    <!-- Заголовок -->
+    <h1 class="text-center text-5xl font-extrabold mb-6 text-gray-800">
+        Поиск вакансий по городам
+    </h1>
+
+    <p class="text-center text-gray-500 text-lg mb-10">
+        Введите город, чтобы посмотреть статистику по вакансиям
+    </p>
+
+    <!-- Поисковая строка -->
+    <form method="get" action="" class="max-w-6xl mx-auto">
+        <div class="flex gap-4 items-center bg-white border border-slate-300 p-5 rounded-3xl shadow-lg hover:shadow-xl transition">
+    
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Введите город..."
+                class="w-full text-slate-800 text-xl px-5 py-4 rounded-2xl 
+                       bg-slate-100 placeholder-slate-500
+                       focus:outline-none focus:ring-4 focus:ring-emerald-300 
+                       focus:border-emerald-500 transition"
+            >
+    
+            <button 
+                type="submit"
+                class="px-8 py-4 
+                       bg-gradient-to-r from-emerald-500 to-indigo-600
+                       hover:from-emerald-600 hover:to-indigo-700
+                       text-white text-lg font-bold rounded-2xl shadow-md
+                       hover:shadow-lg transition">
+                Найти
+            </button>
+    
+        </div>
+    </form>
+    
+
+    <!-- Быстрый поиск по городам -->
+    <div class="flex flex-wrap justify-center gap-3 mt-6">
+        <a href="" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-xl">Москва</a>
+        <a href="" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-xl">Санкт-Петербург</a>
+        <a href="" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-xl">Казань</a>
+        <a href="" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-xl">Новосибирск</a>
+        <a href="" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-xl">Екатеринбург</a>
+    </div>
+
+    <!-- Блок популярных городов -->
+    <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 mt-10">
+        
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">
+            Топ 3 популярных города
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- ЗАМЕНИТЬ НА ЦИКЛ -->
+            <!-- Город 1 -->
+            <div class="p-6 bg-green-50 rounded-2xl border border-green-200 shadow hover:shadow-lg transition">
+                <h3 class="text-2xl font-bold text-green-700 mb-2">Москва</h3>
+                <p class="text-3xl font-bold text-green-600">32% вакансий</p>
+            </div>
+
+            <!-- Город 2 -->
+            <div class="p-6 bg-green-50 rounded-2xl border border-green-200 shadow hover:shadow-lg transition">
+                <h3 class="text-2xl font-bold text-green-700 mb-2">Санкт-Петербург</h3>
+                <p class="text-3xl font-bold text-green-600">18% вакансий</p>
+            </div>
+
+            <!-- Город 3 -->
+            <div class="p-6 bg-green-50 rounded-2xl border border-green-200 shadow hover:shadow-lg transition">
+                <h3 class="text-2xl font-bold text-green-700 mb-2">Казань</h3>
+                <p class="text-3xl font-bold text-green-600">9% вакансий</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Дополнительный декоративный блок -->
+    <div class="mt-12 bg-gradient-to-r from-green-600 to-green-400 text-white p-10 rounded-2xl shadow-lg">
+        <h2 class="text-3xl font-semibold mb-4">Не знаете с чего начать?</h2>
+        <p class="text-lg mb-6">
+            Введите город в поиске выше и получите статистику по вакансиям 
+            — популярные навыки, роли, зарплаты.
+        </p>
+    </div>
+
+</div>
+
+{% endblock content %}

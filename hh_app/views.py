@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case, Value
 from django.db.models.functions import Round, Cast
 
-from hh_app.models import Employer, Experience, SearchQuery, Vacancy
+from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
 from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
@@ -159,3 +159,78 @@ def detail_statistics(request, search_query):
         'result': result,
     }
     return render(request, 'hh_app/detail_statistics.html', context)
+
+
+def cities_statistics(request):
+    return render(request, 'hh_app/cities.html')
+
+
+def city_statistics(request, area_name):
+    area = get_object_or_404(Area, name=area_name)
+    count_vacancies = Vacancy.objects.filter(area=area, salary__currency='RUR').count()
+    experiences = Experience.objects.all().order_by('id')
+    result = (
+        Vacancy.objects
+        .values('experience__code_name')
+        .annotate(
+            count=Count('id'), 
+            salary_avg=Cast(
+                Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
+                output_field=IntegerField()
+            ),
+        )
+        .filter(area=area, salary__currency='RUR')
+        .order_by('experience__id')
+    )
+    area_stats = (
+        Vacancy.objects
+        .filter(area=area, salary__currency='RUR')
+        .values("area__hh_area_id")
+        .aggregate(
+        count=Count('id'),
+        sal_avg=Avg(
+            (F("salary__salary_from") + F("salary__salary_to"))/2, 
+            output_field=IntegerField())
+        )
+    )
+    raw_skills  = (
+        Vacancy.objects
+        .values('skills__name')
+        .annotate(count=Count('id'))
+        .filter(area=area, salary__currency='RUR')
+        .order_by('-count')
+        [:15]
+    )
+    skill_statistics = []
+    for item in raw_skills:
+        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
+        skill_statistics.append({
+            **item,
+            "percent": round(percent, 1)
+        })
+
+    prof_roles = (
+        Vacancy.objects
+        .values('professional_roles__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+        .filter(area=area, salary__currency='RUR')
+        [:3]
+    ) 
+    prof_roles_statistics = []
+    for item in prof_roles:
+        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
+        prof_roles_statistics.append({
+            **item,
+            "percent": round(percent, 1)
+        })
+    context = {
+        'area': area,
+        'count_vacancies': count_vacancies,
+        'experiences': experiences,
+        'area_stats': area_stats,
+        'result': result,
+        'skill_statistics': skill_statistics,
+        'prof_roles_statistics': prof_roles_statistics,
+    }
+    return render(request, 'hh_app/city.html', context)

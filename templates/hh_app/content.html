@@ -9,9 +9,19 @@
     </h1>
     <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
                 
-        <h2 class="text-2xl font-semibold mb-6 text-gray-700">
-            Основное содержимое страницы
-        </h2>
+        <div class="flex items-center justify-center relative mb-8">
+            <a onclick="window.history.back()"
+                class="absolute left-0 flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-800 shadow hover:bg-gray-100 hover:scale-[1.02] transition cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+                <span class="font-medium">Назад</span>
+            </a>
+            
+            <h2 class="text-2xl font-semibold text-gray-700 text-center">
+                Поисковое слово: {{search_query|default:"Не указано"}}
+            </h2>
+        </div>
 
         <!-- Поисковая строка -->
         <div class="flex gap-4 mb-8">
