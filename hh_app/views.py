@@ -224,6 +224,7 @@ def city_statistics(request, area_name):
             **item,
             "percent": round(percent, 1)
         })
+    distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
     context = {
         'area': area,
         'count_vacancies': count_vacancies,
@@ -232,5 +233,6 @@ def city_statistics(request, area_name):
         'result': result,
         'skill_statistics': skill_statistics,
         'prof_roles_statistics': prof_roles_statistics,
+        'distinct_emp': distinct_emp,
     }
     return render(request, 'hh_app/city.html', context)
