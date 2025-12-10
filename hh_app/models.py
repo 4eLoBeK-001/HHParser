@@ -86,16 +86,16 @@ class Vacancy(models.Model):
     fetched_at = models.DateTimeField(auto_now_add=True, help_text='Когда запись появилась в БД')
     url = models.URLField(help_text='Ссылка на вакансию')
 
-    employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
-    area = models.ForeignKey(Area, on_delete=models.CASCADE, null=True, blank=True)
-    salary = models.ForeignKey(Salary, on_delete=models.CASCADE, null=True, blank=True)
-    work_format = models.ForeignKey(WorkFormat, on_delete=models.CASCADE)
-    work_schedule = models.ForeignKey(WorkSchedule, on_delete=models.CASCADE)
-    experience = models.ForeignKey(Experience, on_delete=models.CASCADE)
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name='vacancies')
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='vacancies', null=True, blank=True)
+    salary = models.ForeignKey(Salary, on_delete=models.CASCADE, related_name='vacancies', null=True, blank=True)
+    work_format = models.ForeignKey(WorkFormat, on_delete=models.CASCADE, related_name='vacancies')
+    work_schedule = models.ForeignKey(WorkSchedule, on_delete=models.CASCADE, related_name='vacancies')
+    experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='vacancies')
 
-    search_query = models.ManyToManyField(SearchQuery)
-    professional_roles = models.ManyToManyField(ProfessionalRole)
-    skills = models.ManyToManyField(Skill)
+    search_query = models.ManyToManyField(SearchQuery, related_name='vacancies')
+    professional_roles = models.ManyToManyField(ProfessionalRole, related_name='vacancies')
+    skills = models.ManyToManyField(Skill, related_name='vacancies')
 
 
     def __str__(self):
