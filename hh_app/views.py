@@ -3,6 +3,7 @@ from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
+from hh_app.services.helpers import get_avg_salary, get_count_vacancies, get_skill_statisticcs
 from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
@@ -33,45 +34,16 @@ def searchquery_page(request):
 
 
 def statistics(request, search_query):
-    search_query = get_object_or_404(SearchQuery, name=search_query)
-    count_vacancies = Vacancy.objects.filter(search_query=search_query, salary__currency='RUR').count()
     experiences = Experience.objects.all().order_by('id')
-    result = (
-        Vacancy.objects
-        .values('experience__code_name')
-        .annotate(
-            count=Count('id'), 
-            salary_avg=Cast(
-                Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
-                output_field=IntegerField()
-            ),
-        )
-        .filter(search_query=search_query, salary__currency='RUR')
-        .order_by('experience__id')
-    )
-
-    #  --- Топ-4 навыка ---
-    raw_skills  = (
-        Vacancy.objects
-        .values('skills__name')
-        .annotate(count=Count('id'))
-        .filter(search_query=search_query, salary__currency='RUR')
-        .order_by('-count')
-        [:4]
-    )
-
-    skill_statistics = []
-    for item in raw_skills:
-        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
-        skill_statistics.append({
-            **item,
-            "percent": round(percent, 1)
-        })
+    search_query = get_object_or_404(SearchQuery, name=search_query)
+    count_vacancies = get_count_vacancies(search_query)
+    avg_salary = get_avg_salary(search_query)
+    skill_statistics = get_skill_statisticcs(search_query, 4)
 
     context = {
         'search_query': search_query,
         'experiences': experiences,
-        'result': result,
+        'avg_salary': avg_salary,
         'skill_statistics': skill_statistics,
     }
     return render(request, 'hh_app/statistics.html', context)
@@ -236,3 +208,5 @@ def city_statistics(request, area_name):
         'distinct_emp': distinct_emp,
     }
     return render(request, 'hh_app/city.html', context)
+
+
