@@ -10,7 +10,7 @@
                 Статистика по опыту работы
             </h2>
             <span class="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-green-200">
-                {{ result|length }} категории
+                {{ avg_salary|length }} категории
             </span>
         </div>
     </div>
@@ -34,9 +34,9 @@
                         <div class="flex flex-col items-center">
                             <span>{{experience.name}}</span>
                             {% with forloop.counter0 as index %}
-                            {% if result|length > index %}
+                            {% if avg_salary|length > index %}
                                 <span class="text-xs font-normal text-gray-500 mt-1">
-                                    {{ result.index.count }} 
+                                    {{ avg_salary.index.count }} 
                                 </span>
                             {% endif %}
                             {% endwith %}
@@ -63,7 +63,7 @@
                             </div>
                         </div>
                     </td>
-                    {% for res in result %}
+                    {% for res in avg_salary %}
                     <td class="text-center py-4 px-4 border-b border-gray-200">
                         <div class="flex flex-col items-center">
                             <span class="text-xl font-bold text-green-700">{{res.count}}</span>
@@ -92,7 +92,7 @@
                             </div>
                         </div>
                     </td>
-                    {% for res in result %}
+                    {% for res in avg_salary %}
                     <td class="text-center py-4 px-4">
                         <div class="flex flex-col items-center">
                             <span class="text-xl font-bold text-emerald-700">{{res.salary_avg}} ₽</span>
@@ -110,7 +110,7 @@
     </div>
 
     <!-- Футер таблицы -->
-    {% if result|length > 0 %}
+    {% if avg_salary|length > 0 %}
     <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
         <div class="flex justify-between items-center text-sm text-gray-600">
             <div class="flex items-center gap-2">
@@ -120,7 +120,7 @@
                 <span>Данные актуальны на {{ "now"|date:"d.m.Y" }}</span>
             </div>
             <div class="flex items-center gap-4">
-                {% for res in result %}
+                {% for res in avg_salary %}
                     {% if forloop.first %}
                         <div class="flex items-center gap-1">
                             <div class="w-2 h-2 bg-green-500 rounded-full"></div>

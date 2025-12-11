@@ -48,3 +48,45 @@ def get_skill_statisticcs(search_query, count: int):
         })
     
     return skill_statistics
+
+def get_work_format_statistics(search_query):
+    count_vacancies = get_count_vacancies(search_query)
+
+    work_format_lst = (
+        Vacancy.objects
+        .values("work_format__name")
+        .annotate(count=Count('id'))
+        .filter(search_query=search_query, salary__currency='RUR')
+        .order_by('-count')
+    )
+    work_format_statistics = []
+    for item in work_format_lst:
+        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
+        work_format_statistics.append({
+            **item,
+            "percent": round(percent, 1)
+        })
+    
+    return work_format_statistics
+
+
+def get_professional_roles_statistics(search_query, count):
+    count_vacancies = get_count_vacancies(search_query)
+
+    prof_roles = (
+        Vacancy.objects
+        .values('professional_roles__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+        .filter(search_query=search_query, salary__currency='RUR')
+        [:count]
+    ) 
+    professional_roles_statistics = []
+    for item in prof_roles:
+        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
+        professional_roles_statistics.append({
+            **item,
+            "percent": round(percent, 1)
+        })
+    
+    return professional_roles_statistics

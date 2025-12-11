@@ -3,7 +3,7 @@ from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
-from hh_app.services.helpers import get_avg_salary, get_count_vacancies, get_skill_statisticcs
+from hh_app.services.helpers import get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statisticcs, get_work_format_statistics
 from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
@@ -51,6 +51,8 @@ def statistics(request, search_query):
 
 def detail_statistics(request, search_query):
     search_query = get_object_or_404(SearchQuery, name=search_query)
+    experiences = Experience.objects.all().order_by('id')
+   
     count_vacancies = (
         Vacancy.objects
         .filter(search_query=search_query, salary__currency='RUR')
@@ -60,67 +62,12 @@ def detail_statistics(request, search_query):
             vac_count=Count('id', distinct=True),
         )
     )
-    print(count_vacancies)
-    raw_skills  = (
-        Vacancy.objects
-        .values('skills__name')
-        .annotate(count=Count('id'))
-        .filter(search_query=search_query, salary__currency='RUR')
-        .order_by('-count')
-        [:15]
-    )
-    skill_statistics = []
-    for item in raw_skills:
-        percent = (item["count"] / count_vacancies.get('vac_count')) * 100 if count_vacancies.get('vac_count') else 0
-        skill_statistics.append({
-            **item,
-            "percent": round(percent, 1)
-        })
-    
-    work_format_lst = (
-        Vacancy.objects
-        .values("work_format__name")
-        .annotate(count=Count('id'))
-        .filter(search_query=search_query, salary__currency='RUR')
-        .order_by('-count')
-    )
-    work_format_statistics = []
-    for item in work_format_lst:
-        percent = (item["count"] / count_vacancies.get('vac_count')) * 100 if count_vacancies.get('vac_count') else 0
-        work_format_statistics.append({
-            **item,
-            "percent": round(percent, 1)
-        })
-    
-    prof_roles = (
-        Vacancy.objects
-        .values('professional_roles__name')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-        .filter(search_query=search_query, salary__currency='RUR')
-        [:3]
-    ) 
-    prof_roles_statistics = []
-    for item in prof_roles:
-        percent = (item["count"] / count_vacancies.get('vac_count')) * 100 if count_vacancies.get('vac_count') else 0
-        prof_roles_statistics.append({
-            **item,
-            "percent": round(percent, 1)
-        })
-    experiences = Experience.objects.all().order_by('id')
-    result = (
-        Vacancy.objects
-        .values('experience__code_name')
-        .annotate(
-            count=Count('id'), 
-            salary_avg=Cast(
-                Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
-                output_field=IntegerField()
-            ),
-        )
-        .filter(search_query=search_query, salary__currency='RUR')
-        .order_by('experience__id')
-    )
+
+    skill_statistics = get_skill_statisticcs(search_query, 15)
+    work_format_statistics = get_work_format_statistics(search_query)
+    prof_roles_statistics = get_professional_roles_statistics(search_query, 3)
+    avg_salary = get_avg_salary(search_query)
+
     context = {
         'search_query': search_query,
         'count_vacancies': count_vacancies,
@@ -128,7 +75,7 @@ def detail_statistics(request, search_query):
         'work_format_statistics': work_format_statistics,
         'prof_roles_statistics': prof_roles_statistics,
         'experiences': experiences,
-        'result': result,
+        'avg_salary': avg_salary,
     }
     return render(request, 'hh_app/detail_statistics.html', context)
 
