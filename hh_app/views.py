@@ -36,7 +36,7 @@ def searchquery_page(request):
 def statistics(request, search_query):
     experiences = Experience.objects.all().order_by('id')
     search_query = get_object_or_404(SearchQuery, name=search_query)
-    count_vacancies = get_count_vacancies(search_query=search_query)
+    count_vacancies = get_count_vacancies(search_query)
     avg_salary = get_avg_salary(search_query)
     skill_statistics = get_skill_statisticcs(search_query, 4)
 
@@ -86,7 +86,7 @@ def cities_statistics(request):
 
 def city_statistics(request, area_name):
     area = get_object_or_404(Area, name=area_name)
-    count_vacancies = get_count_vacancies(area=area)
+    count_vacancies = get_count_vacancies(area)
     experiences = Experience.objects.all().order_by('id')
     result = get_avg_salary(area=area)
     area_stats = get_avg_salary_by_area(area)

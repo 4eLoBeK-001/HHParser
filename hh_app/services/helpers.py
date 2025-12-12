@@ -6,12 +6,17 @@ from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
 from hh_parser.forms import SearchQueryForm
 
 
-def get_count_vacancies(search_query=None, area=None):
-    if search_query and area:
-        return Vacancy.objects.filter(search_query=search_query, area=area, salary__currency='RUR').count()
-    elif search_query:
-        return Vacancy.objects.filter(search_query=search_query, salary__currency='RUR').count()
-    return Vacancy.objects.filter(area=area, salary__currency='RUR').count()
+def get_count_vacancies(*args):
+    filters = {'salary__currency': 'RUR'}
+    for arg in args:
+        if isinstance(arg, SearchQuery):
+            filters['search_query'] = arg
+        elif isinstance(arg, Area):
+            filters['area'] = arg
+        else:
+            raise ValueError(f'Неизвестный аргумент: {arg}')
+
+    return Vacancy.objects.filter(**filters).count()
 
 
 def get_avg_salary(search_query=None, area=None):
@@ -73,7 +78,7 @@ def get_skill_statisticcs(search_query=None, area=None, count: int=0):
             [:count]
         )
     elif area is not None:
-        count_vacancies = get_count_vacancies(area=area)
+        count_vacancies = get_count_vacancies(area)
         raw_skills  = (
             Vacancy.objects
             .values('skills__name')
@@ -127,7 +132,7 @@ def get_professional_roles_statistics(search_query=None, area=None, count: int=0
             [:count]
         )
     elif area:
-        count_vacancies = get_count_vacancies(area=area)
+        count_vacancies = get_count_vacancies(area)
 
         prof_roles = (
             Vacancy.objects
