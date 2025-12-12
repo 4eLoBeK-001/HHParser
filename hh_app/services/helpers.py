@@ -6,39 +6,83 @@ from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
 from hh_parser.forms import SearchQueryForm
 
 
-def get_count_vacancies(search_query):
-    return Vacancy.objects.filter(search_query=search_query, salary__currency='RUR').count()
+def get_count_vacancies(search_query=None, area=None):
+    if search_query and area:
+        return Vacancy.objects.filter(search_query=search_query, area=area, salary__currency='RUR').count()
+    elif search_query:
+        return Vacancy.objects.filter(search_query=search_query, salary__currency='RUR').count()
+    return Vacancy.objects.filter(area=area, salary__currency='RUR').count()
 
 
-def get_avg_salary(search_query):
-    avg_salary = (
-        Vacancy.objects
-        .values('experience__code_name')
-        .annotate(
-            count=Count('id'), 
-            salary_avg=Cast(
-                Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
-                output_field=IntegerField()
-            ),
+def get_avg_salary(search_query=None, area=None):
+    if search_query:
+        avg_salary = (
+            Vacancy.objects
+            .values('experience__code_name')
+            .annotate(
+                count=Count('id'), 
+                salary_avg=Cast(
+                    Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
+                    output_field=IntegerField()
+                ),
+            )
+            .filter(search_query=search_query, salary__currency='RUR')
+            .order_by('experience__id')
         )
-        .filter(search_query=search_query, salary__currency='RUR')
-        .order_by('experience__id')
-    )
+    elif area:
+        avg_salary = (
+            Vacancy.objects
+            .values('experience__code_name')
+            .annotate(
+                count=Count('id'), 
+                salary_avg=Cast(
+                    Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
+                    output_field=IntegerField()
+                ),
+            )
+            .filter(area=area, salary__currency='RUR')
+            .order_by('experience__id')
+        )
     return avg_salary
 
 
-def get_skill_statisticcs(search_query, count: int):
-    count_vacancies = get_count_vacancies(search_query)
-
-    raw_skills  = (
+def get_avg_salary_by_area(area):
+    avg_salary = (
         Vacancy.objects
-        .values('skills__name')
-        .annotate(count=Count('id'))
-        .filter(search_query=search_query, salary__currency='RUR')
-        .order_by('-count')
-        [:count]
+        .filter(area=area, salary__currency='RUR')
+        .values("area__hh_area_id")
+        .aggregate(
+        count=Count('id'),
+        sal_avg=Avg(
+            (F("salary__salary_from") + F("salary__salary_to"))/2, 
+            output_field=IntegerField())
+        )
     )
+    return avg_salary
 
+def get_skill_statisticcs(search_query=None, area=None, count: int=0):
+
+    if search_query is not None:
+        count_vacancies = get_count_vacancies(search_query)
+        raw_skills  = (
+            Vacancy.objects
+            .values('skills__name')
+            .annotate(count=Count('id'))
+            .filter(search_query=search_query, salary__currency='RUR')
+            .order_by('-count')
+            [:count]
+        )
+    elif area is not None:
+        count_vacancies = get_count_vacancies(area=area)
+        raw_skills  = (
+            Vacancy.objects
+            .values('skills__name')
+            .annotate(count=Count('id'))
+            .filter(area=area, salary__currency='RUR')
+            .order_by('-count')
+            [:count]
+        )
+                
     skill_statistics = []
     for item in raw_skills:
         percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
@@ -70,17 +114,30 @@ def get_work_format_statistics(search_query):
     return work_format_statistics
 
 
-def get_professional_roles_statistics(search_query, count):
-    count_vacancies = get_count_vacancies(search_query)
+def get_professional_roles_statistics(search_query=None, area=None, count: int=0):
+    if search_query:
+        count_vacancies = get_count_vacancies(search_query)
 
-    prof_roles = (
-        Vacancy.objects
-        .values('professional_roles__name')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-        .filter(search_query=search_query, salary__currency='RUR')
-        [:count]
-    ) 
+        prof_roles = (
+            Vacancy.objects
+            .values('professional_roles__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+            .filter(search_query=search_query, salary__currency='RUR')
+            [:count]
+        )
+    elif area:
+        count_vacancies = get_count_vacancies(area=area)
+
+        prof_roles = (
+            Vacancy.objects
+            .values('professional_roles__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+            .filter(area=area, salary__currency='RUR')
+            [:count]
+        )
+
     professional_roles_statistics = []
     for item in prof_roles:
         percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0

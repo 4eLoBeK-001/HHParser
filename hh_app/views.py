@@ -3,7 +3,7 @@ from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
-from hh_app.services.helpers import get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statisticcs, get_work_format_statistics
+from hh_app.services.helpers import get_avg_salary, get_avg_salary_by_area, get_count_vacancies, get_professional_roles_statistics, get_skill_statisticcs, get_work_format_statistics
 from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
@@ -36,7 +36,7 @@ def searchquery_page(request):
 def statistics(request, search_query):
     experiences = Experience.objects.all().order_by('id')
     search_query = get_object_or_404(SearchQuery, name=search_query)
-    count_vacancies = get_count_vacancies(search_query)
+    count_vacancies = get_count_vacancies(search_query=search_query)
     avg_salary = get_avg_salary(search_query)
     skill_statistics = get_skill_statisticcs(search_query, 4)
 
@@ -86,64 +86,14 @@ def cities_statistics(request):
 
 def city_statistics(request, area_name):
     area = get_object_or_404(Area, name=area_name)
-    count_vacancies = Vacancy.objects.filter(area=area, salary__currency='RUR').count()
+    count_vacancies = get_count_vacancies(area=area)
     experiences = Experience.objects.all().order_by('id')
-    result = (
-        Vacancy.objects
-        .values('experience__code_name')
-        .annotate(
-            count=Count('id'), 
-            salary_avg=Cast(
-                Avg((F('salary__salary_from') + F('salary__salary_to')) / 2), # Средняя зп с учётом нижней и верхней границы
-                output_field=IntegerField()
-            ),
-        )
-        .filter(area=area, salary__currency='RUR')
-        .order_by('experience__id')
-    )
-    area_stats = (
-        Vacancy.objects
-        .filter(area=area, salary__currency='RUR')
-        .values("area__hh_area_id")
-        .aggregate(
-        count=Count('id'),
-        sal_avg=Avg(
-            (F("salary__salary_from") + F("salary__salary_to"))/2, 
-            output_field=IntegerField())
-        )
-    )
-    raw_skills  = (
-        Vacancy.objects
-        .values('skills__name')
-        .annotate(count=Count('id'))
-        .filter(area=area, salary__currency='RUR')
-        .order_by('-count')
-        [:15]
-    )
-    skill_statistics = []
-    for item in raw_skills:
-        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
-        skill_statistics.append({
-            **item,
-            "percent": round(percent, 1)
-        })
-
-    prof_roles = (
-        Vacancy.objects
-        .values('professional_roles__name')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-        .filter(area=area, salary__currency='RUR')
-        [:3]
-    ) 
-    prof_roles_statistics = []
-    for item in prof_roles:
-        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
-        prof_roles_statistics.append({
-            **item,
-            "percent": round(percent, 1)
-        })
+    result = get_avg_salary(area=area)
+    area_stats = get_avg_salary_by_area(area)
+    skill_statistics = get_skill_statisticcs(area=area, count=15)
+    prof_roles_statistics = get_professional_roles_statistics(area=area, count=3)
     distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
+    
     context = {
         'area': area,
         'count_vacancies': count_vacancies,
