@@ -88,9 +88,9 @@ def city_statistics(request, area_name):
     area = get_object_or_404(Area, name=area_name)
     count_vacancies = get_count_vacancies(area)
     experiences = Experience.objects.all().order_by('id')
-    result = get_avg_salary(area=area)
+    result = get_avg_salary(area)
     area_stats = get_avg_salary_by_area(area)
-    skill_statistics = get_skill_statisticcs(area=area, count=15)
+    skill_statistics = get_skill_statisticcs(area, count=15)
     prof_roles_statistics = get_professional_roles_statistics(area=area, count=3)
     distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
     
