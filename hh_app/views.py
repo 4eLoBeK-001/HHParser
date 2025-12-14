@@ -91,7 +91,7 @@ def city_statistics(request, area_name):
     result = get_avg_salary(area)
     area_stats = get_avg_salary_by_area(area)
     skill_statistics = get_skill_statisticcs(area, count=15)
-    prof_roles_statistics = get_professional_roles_statistics(area=area, count=3)
+    prof_roles_statistics = get_professional_roles_statistics(area, count=3)
     distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
     
     context = {

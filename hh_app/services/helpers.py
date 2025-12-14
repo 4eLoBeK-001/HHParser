@@ -73,7 +73,13 @@ def add_percentage_to_skills(raw_skills, count_vacancies):
     return skill_statistics
 
 
-def get_skill_statisticcs(*args, count: int=0):
+def get_skill_statisticcs(*args, count: int = 0):
+    """Такое условие нужно для того чтобы в функция корректно работала если в неё передать либо именованные аргументв либо нет
+    например: get_skill_statisticcs(arg1, arg2, 4) и get_skill_statisticcs(arg1, arg2, count=4) теперь будут работать одинакого"""
+    if isinstance(args[-1], int):
+        count = args[-1]
+        args = args[:-1]
+
     raw_skills  = (
             Vacancy.objects
             .values('skills__name')
@@ -95,17 +101,18 @@ def get_skill_statisticcs(*args, count: int=0):
                 ValueError(f'Неизвестный аргумент: {arg}')
         return search_query_statistic[:count], area_statistic[:count]
     else:
-        if isinstance(arg, SearchQuery):
-            search_query_skills = raw_skills.filter(search_query=arg)
-            count_vacancies = get_count_vacancies(arg)
-            return add_percentage_to_skills(search_query_skills, count_vacancies)[:count]
-        elif isinstance(arg, Area):
-            area_skills = raw_skills.filter(area=arg)
-            count_vacancies = get_count_vacancies(arg)
-            return add_percentage_to_skills(area_skills, count_vacancies)[:count]
-        else:
-            ValueError(f'Неизвестный аргумент: {arg}')
-
+        for arg in args:
+            if isinstance(arg, SearchQuery):
+                search_query_skills = raw_skills.filter(search_query=arg)
+                count_vacancies = get_count_vacancies(arg)
+                return add_percentage_to_skills(search_query_skills, count_vacancies)[:count]
+            elif isinstance(arg, Area):
+                area_skills = raw_skills.filter(area=arg)
+                count_vacancies = get_count_vacancies(arg)
+                return add_percentage_to_skills(area_skills, count_vacancies)[:count]
+            else:
+                ValueError(f'Неизвестный аргумент: {arg}')
+    
 
 def get_work_format_statistics(search_query):
     count_vacancies = get_count_vacancies(search_query)
@@ -128,36 +135,43 @@ def get_work_format_statistics(search_query):
     return work_format_statistics
 
 
-def get_professional_roles_statistics(search_query=None, area=None, count: int=0):
-    if search_query:
-        count_vacancies = get_count_vacancies(search_query)
+def get_professional_roles_statistics(*args, count: int=0):
+    if isinstance(args[-1], int):
+        count = args[-1]
+        args = args[:-1]
 
-        prof_roles = (
-            Vacancy.objects
-            .values('professional_roles__name')
-            .annotate(count=Count('id'))
-            .order_by('-count')
-            .filter(search_query=search_query, salary__currency='RUR')
-            [:count]
-        )
-    elif area:
-        count_vacancies = get_count_vacancies(area)
-
-        prof_roles = (
-            Vacancy.objects
-            .values('professional_roles__name')
-            .annotate(count=Count('id'))
-            .order_by('-count')
-            .filter(area=area, salary__currency='RUR')
-            [:count]
-        )
-
-    professional_roles_statistics = []
-    for item in prof_roles:
-        percent = (item["count"] / count_vacancies) * 100 if count_vacancies else 0
-        professional_roles_statistics.append({
-            **item,
-            "percent": round(percent, 1)
-        })
-    
-    return professional_roles_statistics
+    filters = {'salary__currency': 'RUR'}
+    prof_roles = (
+        Vacancy.objects
+        .values('professional_roles__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    if len(args) > 1:
+        for arg in args:
+            if isinstance(arg, SearchQuery):
+                count_vacancies = get_count_vacancies(arg)
+                filters['search_query'] = arg
+                prof_roles_by_searchquery = prof_roles.filter(**filters)
+                pfs = add_percentage_to_skills(prof_roles_by_searchquery, count_vacancies)
+            elif isinstance(arg, Area):
+                count_vacancies = get_count_vacancies(arg)
+                filters['area'] = arg
+                prof_roles_by_area = prof_roles.filter(**filters)
+                pfa = add_percentage_to_skills(prof_roles_by_area, count_vacancies)
+            else:
+                ValueError(f'Неизвестный аргумент: {arg}')
+        return [pfs[:count], pfa[:count]]
+    else:
+        for arg in args:
+            if isinstance(arg, SearchQuery):
+                count_vacancies = get_count_vacancies(arg)
+                filters['search_query'] = arg
+                prof_roles = prof_roles.filter(**filters)
+                pf = add_percentage_to_skills(prof_roles, count_vacancies)
+            elif isinstance(arg, Area):
+                count_vacancies = get_count_vacancies(arg)
+                filters['area'] = arg
+                prof_roles = prof_roles.filter(**filters)
+                pf = add_percentage_to_skills(prof_roles, count_vacancies)
+        return pf[:count]
