@@ -1,22 +1,23 @@
-from django.shortcuts import get_object_or_404, render
-from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case, Value
-from django.db.models.functions import Round, Cast
+from django.db.models import Count, Avg, F, IntegerField
+from django.db.models.functions import Cast
 
-from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
-from hh_parser.forms import SearchQueryForm
+from hh_app.models import Area, SearchQuery, Vacancy
 
 
-def get_count_vacancies(*args):
+def get_count_vacancies(
+    *,
+    search_query: SearchQuery | None = None,
+    area: Area | None = None
+) -> int:
     filters = {'salary__currency': 'RUR'}
-    for arg in args:
-        if isinstance(arg, SearchQuery):
-            filters['search_query'] = arg
-        elif isinstance(arg, Area):
-            filters['area'] = arg
-        else:
-            raise ValueError(f'Неизвестный аргумент: {arg}')
+    if search_query:
+        filters['search_query'] = search_query
+    if area:
+        filters['area'] = area
 
-    return Vacancy.objects.filter(**filters).count()
+    qs = Vacancy.objects.filter(**filters)
+
+    return qs.count()
 
 
 def get_avg_salary(*args):
@@ -98,7 +99,7 @@ def get_skill_statisticcs(*args, count: int = 0):
                 count_vacancies = get_count_vacancies(arg)
                 area_statistic = add_percentage_to_skills(area_skills, count_vacancies)
             else:
-                ValueError(f'Неизвестный аргумент: {arg}')
+                raise ValueError(f'Неизвестный аргумент: {arg}')
         return search_query_statistic[:count], area_statistic[:count]
     else:
         for arg in args:
@@ -111,7 +112,7 @@ def get_skill_statisticcs(*args, count: int = 0):
                 count_vacancies = get_count_vacancies(arg)
                 return add_percentage_to_skills(area_skills, count_vacancies)[:count]
             else:
-                ValueError(f'Неизвестный аргумент: {arg}')
+                raise ValueError(f'Неизвестный аргумент: {arg}')
     
 
 def get_work_format_statistics(search_query):
@@ -160,7 +161,7 @@ def get_professional_roles_statistics(*args, count: int=0):
                 prof_roles_by_area = prof_roles.filter(**filters)
                 pfa = add_percentage_to_skills(prof_roles_by_area, count_vacancies)
             else:
-                ValueError(f'Неизвестный аргумент: {arg}')
+                raise ValueError(f'Неизвестный аргумент: {arg}')
         return [pfs[:count], pfa[:count]]
     else:
         for arg in args:
@@ -174,4 +175,6 @@ def get_professional_roles_statistics(*args, count: int=0):
                 filters['area'] = arg
                 prof_roles = prof_roles.filter(**filters)
                 pf = add_percentage_to_skills(prof_roles, count_vacancies)
+            else:
+                raise ValueError(f'Неизвестный аргумент: {arg}')
         return pf[:count]
