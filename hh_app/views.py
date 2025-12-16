@@ -3,7 +3,7 @@ from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
-from hh_app.services.helpers import get_avg_salary, get_avg_salary_by_area, get_count_vacancies, get_professional_roles_statistics, get_skill_statisticcs, get_work_format_statistics
+from hh_app.services.helpers import get_avg_salary, get_avg_salary_by_area, get_count_vacancies, get_professional_roles_statistics, get_skill_statisticcs_by_area, get_skill_statisticcs_by_search_query, get_work_format_statistics
 from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
@@ -36,7 +36,7 @@ def searchquery_page(request):
 def statistics(request, search_query):
     experiences = Experience.objects.all().order_by('id')
     search_query = get_object_or_404(SearchQuery, name=search_query)
-    count_vacancies = get_count_vacancies(search_query)
+    count_vacancies = get_count_vacancies(search_query=search_query)
     avg_salary = get_avg_salary(search_query)
     skill_statistics = get_skill_statisticcs(search_query, 4)
 
@@ -86,12 +86,12 @@ def cities_statistics(request):
 
 def city_statistics(request, area_name):
     area = get_object_or_404(Area, name=area_name)
-    count_vacancies = get_count_vacancies(area)
+    count_vacancies = get_count_vacancies(area=area)
     experiences = Experience.objects.all().order_by('id')
     result = get_avg_salary(area)
     area_stats = get_avg_salary_by_area(area)
-    skill_statistics = get_skill_statisticcs(area, count=15)
-    prof_roles_statistics = get_professional_roles_statistics(area, count=3)
+    skill_statistics = get_skill_statisticcs_by_area(area, limit=15)
+    prof_roles_statistics = get_professional_roles_statistics(area, limit=3)
     distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
     
     context = {
