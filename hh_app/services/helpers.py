@@ -1,4 +1,4 @@
-from django.db.models import Count, Avg, F, IntegerField
+from django.db.models import F, Value, Case, When, FloatField, IntegerField, Avg, Count
 from django.db.models.functions import Cast
 
 from hh_app.models import Area, SearchQuery, Vacancy
@@ -19,48 +19,48 @@ def get_count_vacancies(
 
     return qs.count()
 
+def _aggregate_avg_salary(queryset):
+    """
+    функция для агрегации средней зарплаты по опыту.
+    Возвращает список словарей с полями:
+    - experience__code_name:     опыт работы
+    - count:                     кол-во вакансий на данный опыт работы
+    - salary_avg:                средняя ЗП на каждый опыт работы
+    """
+    # подсчёт для средней зарплаты с учетом NULL
+    salary_expr = Case(
+        # оба значения указаны
+        When(salary__salary_from__isnull=False, salary__salary_to__isnull=False,
+             then=(F('salary__salary_from') + F('salary__salary_to')) / 2),
+        # только salary_from
+        When(salary__salary_from__isnull=False, salary__salary_to__isnull=True,
+             then=F('salary__salary_from')),
+        # только salary_to
+        When(salary__salary_from__isnull=True, salary__salary_to__isnull=False,
+             then=F('salary__salary_to')),
+        # если оба NULL то оно не учитывается
+        default=None,
+        output_field=FloatField()
+    )
 
-def get_avg_salary(*args):
-    filters = {'salary__currency': 'RUR'}
+    return (
+        queryset
+        .values('experience__code_name')
+        .annotate(
+            count=Count('id'),
+            salary_avg=Cast(Avg(salary_expr), IntegerField())
+        )
+        .order_by('experience__id')
+    )
 
-    for arg in args:
-        if isinstance(arg, SearchQuery):
-            filters['search_query'] = arg
-        elif isinstance(arg, Area):
-            filters['area'] = arg
-        else:
-            raise ValueError(f'Неизвестный аргумент: {arg}')
 
-    avg_salary = (
-            Vacancy.objects
-            .values('experience__code_name')
-            .annotate(
-                count=Count('id'), 
-                salary_avg=Cast(
-                    Avg((F('salary__salary_from') + F('salary__salary_to')) / 2),
-                    output_field=IntegerField()
-                ),
-            )
-            .filter(**filters)
-            .order_by('experience__id')
-        )    
-    return avg_salary
-
+def get_avg_salary_by_search_query(search_query):
+    qs = Vacancy.objects.filter(search_query=search_query, salary__currency='RUR')
+    return _aggregate_avg_salary(qs)
 
 def get_avg_salary_by_area(area):
-    """Получение средней зарплаты всего города"""
-    avg_salary = (
-        Vacancy.objects
-        .filter(area=area, salary__currency='RUR')
-        .values("area__hh_area_id")
-        .aggregate(
-        count=Count('id'),
-        sal_avg=Avg(
-            (F("salary__salary_from") + F("salary__salary_to"))/2, 
-            output_field=IntegerField())
-        )
-    )
-    return avg_salary
+    qs = Vacancy.objects.filter(area=area, salary__currency='RUR')
+    return _aggregate_avg_salary(qs)
 
 
 def add_percentage(raw_skills, count_vacancies):
