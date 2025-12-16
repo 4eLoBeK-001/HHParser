@@ -148,45 +148,50 @@ def get_work_format_statistics(search_query):
     return work_format_statistics
 
 
-def get_professional_roles_statistics(*args, count: int=0):
-    if isinstance(args[-1], int):
-        count = args[-1]
-        args = args[:-1]
-
+def get_raw_professional_role_counts(
+    *,
+    search_query: SearchQuery | None = None,
+    area: Area | None = None,
+):
     filters = {'salary__currency': 'RUR'}
-    prof_roles = (
+    
+    if search_query is not None:
+        filters['search_query'] = search_query
+
+    if area is not None:
+        filters['area'] = area
+
+    qs = (
         Vacancy.objects
+        .filter(**filters)
         .values('professional_roles__name')
         .annotate(count=Count('id'))
         .order_by('-count')
     )
-    if len(args) > 1:
-        for arg in args:
-            if isinstance(arg, SearchQuery):
-                count_vacancies = get_count_vacancies(search_query=arg)
-                filters['search_query'] = arg
-                prof_roles_by_searchquery = prof_roles.filter(**filters)
-                pfs = add_percentage(prof_roles_by_searchquery, count_vacancies)
-            elif isinstance(arg, Area):
-                count_vacancies = get_count_vacancies(area=arg)
-                filters['area'] = arg
-                prof_roles_by_area = prof_roles.filter(**filters)
-                pfa = add_percentage(prof_roles_by_area, count_vacancies)
-            else:
-                raise ValueError(f'Неизвестный аргумент: {arg}')
-        return [pfs[:count], pfa[:count]]
-    else:
-        for arg in args:
-            if isinstance(arg, SearchQuery):
-                count_vacancies = get_count_vacancies(search_query=arg)
-                filters['search_query'] = arg
-                prof_roles = prof_roles.filter(**filters)
-                pf = add_percentage(prof_roles, count_vacancies)
-            elif isinstance(arg, Area):
-                count_vacancies = get_count_vacancies(area=arg)
-                filters['area'] = arg
-                prof_roles = prof_roles.filter(**filters)
-                pf = add_percentage(prof_roles, count_vacancies)
-            else:
-                raise ValueError(f'Неизвестный аргумент: {arg}')
-        return pf[:count]
+
+    return qs
+
+def get_professional_roles_statistics_by_search_query(
+        *,
+        search_query: SearchQuery,
+        limit: int=0
+):
+    count_vacancies = get_count_vacancies(search_query=search_query)
+
+    professional_role_counts = get_raw_professional_role_counts(search_query=search_query)
+    professional_role_statistics = add_percentage(professional_role_counts, count_vacancies)
+
+    return professional_role_statistics[:limit]
+
+
+def get_professional_roles_statistics_by_area(
+        *,
+        area: Area,
+        limit: int=0
+):
+    count_vacancies = get_count_vacancies(area=area)
+
+    professional_role_counts = get_raw_professional_role_counts(area=area)
+    professional_role_statistics = add_percentage(professional_role_counts, count_vacancies)
+
+    return professional_role_statistics[:limit]

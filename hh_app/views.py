@@ -3,7 +3,7 @@ from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
-from hh_app.services.helpers import get_avg_salary, get_avg_salary_by_area, get_count_vacancies, get_professional_roles_statistics, get_skill_statisticcs_by_area, get_skill_statisticcs_by_search_query, get_work_format_statistics
+from hh_app.services.helpers import get_avg_salary, get_avg_salary_by_area, get_count_vacancies, get_professional_roles_statistics_by_area, get_skill_statisticcs_by_area, get_skill_statisticcs_by_search_query, get_work_format_statistics, get_professional_roles_statistics_by_search_query
 from hh_parser.forms import SearchQueryForm
 
 # Create your views here.
@@ -91,7 +91,7 @@ def city_statistics(request, area_name):
     result = get_avg_salary(area)
     area_stats = get_avg_salary_by_area(area)
     skill_statistics = get_skill_statisticcs_by_area(area, limit=15)
-    prof_roles_statistics = get_professional_roles_statistics(area, limit=3)
+    prof_roles_statistics = get_professional_roles_statistics_by_area(area=area, limit=3)
     distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
     
     context = {
