@@ -37,8 +37,8 @@ def statistics(request, search_query):
     experiences = Experience.objects.all().order_by('id')
     search_query = get_object_or_404(SearchQuery, name=search_query)
     count_vacancies = get_count_vacancies(search_query=search_query)
-    avg_salary = get_avg_salary(search_query)
-    skill_statistics = get_skill_statisticcs(search_query, 4)
+    avg_salary = get_avg_salary(search_query=search_query)
+    skill_statistics = get_skill_statistics(search_query=search_query, limit=4)
 
     context = {
         'search_query': search_query,
@@ -53,7 +53,7 @@ def detail_statistics(request, search_query):
     search_query = get_object_or_404(SearchQuery, name=search_query)
     experiences = Experience.objects.all().order_by('id')
    
-    count_vacancies = (
+    count_vacancies_and_employers = (
         Vacancy.objects
         .filter(search_query=search_query, salary__currency='RUR')
         .values('employer__hh_employer_id')
@@ -63,14 +63,14 @@ def detail_statistics(request, search_query):
         )
     )
 
-    skill_statistics = get_skill_statisticcs(search_query, 15)
+    skill_statistics = get_skill_statistics(search_query=search_query, limit=15)
     work_format_statistics = get_work_format_statistics(search_query)
-    prof_roles_statistics = get_professional_roles_statistics(search_query, 3)
-    avg_salary = get_avg_salary(search_query)
+    prof_roles_statistics = get_professional_roles_statistics(search_query=search_query, limit=3)
+    avg_salary = get_avg_salary(search_query=search_query)
 
     context = {
         'search_query': search_query,
-        'count_vacancies': count_vacancies,
+        'count_vacancies_and_employers': count_vacancies_and_employers,
         'skill_statistics': skill_statistics,
         'work_format_statistics': work_format_statistics,
         'prof_roles_statistics': prof_roles_statistics,
@@ -86,10 +86,37 @@ def cities_statistics(request):
 
 def city_statistics(request, area_name):
     area = get_object_or_404(Area, name=area_name)
+
+    avg_salary_in_area = (
+        Vacancy.objects
+        .filter(area=area, salary__currency='RUR')
+        .aggregate(
+            avg_salary=Cast(Avg(
+                Case(
+                    When(
+                        salary__salary_from__isnull=False,
+                        salary__salary_to__isnull=False,
+                        then=(F('salary__salary_from') + F('salary__salary_to')) / 2
+                    ),
+                    When(
+                        salary__salary_from__isnull=False,
+                        salary__salary_to__isnull=True,
+                        then=F('salary__salary_from')
+                    ),
+                    When(
+                        salary__salary_from__isnull=True,
+                        salary__salary_to__isnull=False,
+                        then=F('salary__salary_to')
+                    ),
+                    default=None,
+                    output_field=FloatField(),
+                )
+            ), output_field=IntegerField())
+        )
+    )
     count_vacancies = get_count_vacancies(area=area)
     experiences = Experience.objects.all().order_by('id')
-    result = get_avg_salary(area=area)
-    # area_stats = get_avg_salary_by_area(area)
+    avg_salary_by_area = get_avg_salary(area=area)
     skill_statistics = get_skill_statistics(area=area, limit=15)
     prof_roles_statistics = get_professional_roles_statistics(area=area, limit=3)
     distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
@@ -98,8 +125,8 @@ def city_statistics(request, area_name):
         'area': area,
         'count_vacancies': count_vacancies,
         'experiences': experiences,
-        'area_stats': ...,
-        'result': result,
+        'avg_salary_in_area': avg_salary_in_area,
+        'avg_salary_by_area': avg_salary_by_area,
         'skill_statistics': skill_statistics,
         'prof_roles_statistics': prof_roles_statistics,
         'distinct_emp': distinct_emp,

@@ -131,7 +131,7 @@ def get_skill_statistics(
 
 
 def get_work_format_statistics(search_query):
-    count_vacancies = get_count_vacancies(search_query)
+    count_vacancies = get_count_vacancies(search_query=search_query)
 
     work_format_lst = (
         Vacancy.objects
