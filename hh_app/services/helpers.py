@@ -54,12 +54,18 @@ def _aggregate_avg_salary(queryset):
     )
 
 
-def get_avg_salary_by_search_query(search_query):
-    qs = Vacancy.objects.filter(search_query=search_query, salary__currency='RUR')
-    return _aggregate_avg_salary(qs)
+def get_avg_salary(
+    *,
+    search_query: SearchQuery | None = None,      
+    area: Area | None = None,      
+):
+    qs = Vacancy.objects.filter(salary__currency='RUR')
 
-def get_avg_salary_by_area(area):
-    qs = Vacancy.objects.filter(area=area, salary__currency='RUR')
+    if search_query:
+        qs = qs.filter(search_query=search_query)
+    if area:
+        qs = qs.filter(area=area)
+
     return _aggregate_avg_salary(qs)
 
 
@@ -104,27 +110,24 @@ def get_raw_skill_counts(
     return qs
 
 
-def get_skill_statisticcs_by_search_query(
-        search_query: SearchQuery,
-        limit: int = 0
+def get_skill_statistics(
+    *,
+    search_query: SearchQuery | None = None,
+    area: Area | None = None,
+    limit: int = 0
 ):
-
-    raw_skills = get_raw_skill_counts(search_query=search_query)
-    count_vacancies = get_count_vacancies(search_query=search_query)
-    
+    raw_skills = get_raw_skill_counts(
+        search_query=search_query,
+        area=area
+    )
+    count_vacancies = get_count_vacancies(
+        search_query=search_query,
+        area=area
+    )
     skill_stats = add_percentage(raw_skills, count_vacancies)
+
     return skill_stats[:limit]
 
-def get_skill_statisticcs_by_area(
-        area: Area,
-        limit: int = 0
-):
-
-    raw_skills = get_raw_skill_counts(area=area)
-    count_vacancies = get_count_vacancies(area=area)
-    
-    skill_stats = add_percentage(raw_skills, count_vacancies)
-    return skill_stats[:limit]
 
 
 def get_work_format_statistics(search_query):
@@ -171,27 +174,24 @@ def get_raw_professional_role_counts(
 
     return qs
 
-def get_professional_roles_statistics_by_search_query(
+def get_professional_roles_statistics(
         *,
-        search_query: SearchQuery,
+        search_query: SearchQuery | None = None,
+        area: Area | None = None,
         limit: int=0
 ):
-    count_vacancies = get_count_vacancies(search_query=search_query)
+    if search_query is None and area is None:
+        raise ValueError("Хотя-бы один аргумент search_query или area должен быть передан")
 
-    professional_role_counts = get_raw_professional_role_counts(search_query=search_query)
-    professional_role_statistics = add_percentage(professional_role_counts, count_vacancies)
+    count_vacancies = get_count_vacancies(
+        search_query=search_query,
+        area=area,
+    )
 
-    return professional_role_statistics[:limit]
-
-
-def get_professional_roles_statistics_by_area(
-        *,
-        area: Area,
-        limit: int=0
-):
-    count_vacancies = get_count_vacancies(area=area)
-
-    professional_role_counts = get_raw_professional_role_counts(area=area)
+    professional_role_counts = get_raw_professional_role_counts(
+        search_query=search_query,
+        area=area,
+    )
     professional_role_statistics = add_percentage(professional_role_counts, count_vacancies)
 
     return professional_role_statistics[:limit]
