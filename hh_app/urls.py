@@ -12,4 +12,6 @@ urlpatterns = [
     path('query/', views.searchquery_page, name='searchquery_page'),
     path('vacancies/<str:search_query>/', views.statistics, name='statistics'),
     path('vacancies/<str:search_query>/detail/', views.detail_statistics, name='detail_statistics'),
+
+    path('employers/', views.employers_list, name='employers_list'),
 ]

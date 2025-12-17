@@ -1,8 +1,11 @@
+from datetime import timedelta
+
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, render
-from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case, Value
+from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case, Value, Min, Max
 from django.db.models.functions import Round, Cast
 
-from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy
+from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy, WorkSchedule
 from hh_app.services.helpers import get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
 from hh_parser.forms import SearchQueryForm
 
@@ -120,6 +123,22 @@ def city_statistics(request, area_name):
     skill_statistics = get_skill_statistics(area=area, limit=15)
     prof_roles_statistics = get_professional_roles_statistics(area=area, limit=3)
     distinct_emp = Employer.objects.filter(vacancies__area=area).distinct().count()
+
+
+    month_ago = timezone.now() - timedelta(days=30)
+    ws = WorkSchedule.objects.filter(working_hours__contains='8')
+    max_and_min_salary = (
+        Vacancy.objects
+        .filter(
+            area=area,
+            salary__currency='RUR',
+            published_at__gte=month_ago, 
+            work_schedule__in=ws
+        )
+        .values("area__hh_area_id")
+        .aggregate(min_sal=Min('salary__salary_from'), max_sal=Max('salary__salary_to'))
+    )
+
     
     context = {
         'area': area,
@@ -130,7 +149,44 @@ def city_statistics(request, area_name):
         'skill_statistics': skill_statistics,
         'prof_roles_statistics': prof_roles_statistics,
         'distinct_emp': distinct_emp,
+        'max_and_min_salary': max_and_min_salary,
     }
     return render(request, 'hh_app/city.html', context)
+
+
+def employers_list(request):
+    employers = (
+        Employer.objects
+        .annotate(
+            count_vac=Count('vacancies', distinct=True),
+            avg_salary=Cast(
+                Avg(
+                    Case(
+                        When(
+                            vacancies__salary__salary_from__isnull=False,
+                            vacancies__salary__salary_to__isnull=False,
+                            then=(F('vacancies__salary__salary_from') + F('vacancies__salary__salary_to')) / 2
+                        ),
+                        When(
+                            vacancies__salary__salary_from__isnull=False,
+                            vacancies__salary__salary_to__isnull=True,
+                            then=F('vacancies__salary__salary_from')
+                        ),
+                        When(
+                            vacancies__salary__salary_from__isnull=True,
+                            vacancies__salary__salary_to__isnull=False,
+                            then=F('vacancies__salary__salary_to')
+                        ),
+                        output_field=FloatField(),
+                    )
+                ), output_field=IntegerField()
+            )
+        ).order_by('-count_vac')
+    )
+    context = {
+        'employers_count': employers.count(),
+        'employers': employers[:75],
+    }
+    return render(request, 'hh_app/employers.html', context)
 
 
