@@ -14,4 +14,5 @@ urlpatterns = [
     path('vacancies/<str:search_query>/detail/', views.detail_statistics, name='detail_statistics'),
 
     path('employers/', views.employers_list, name='employers_list'),
+    path('employer/<hh_employer_id>/', views.employer_detailed, name='employer_detailed'),
 ]

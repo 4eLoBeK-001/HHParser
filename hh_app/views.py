@@ -190,3 +190,41 @@ def employers_list(request):
     return render(request, 'hh_app/employers.html', context)
 
 
+def employer_detailed(request, hh_employer_id):
+    vacancies = Vacancy.objects.filter(employer__hh_employer_id=hh_employer_id).order_by('published_at')
+    employer = get_object_or_404(
+        Employer.objects
+        .annotate(
+            count_vac=Count('vacancies', distinct=True),
+            cities_count=Count('vacancies__area', distinct=True),
+            prof_roles_count=Count('vacancies__professional_roles', distinct=True),
+            avg_salary=Cast(
+                Avg(
+                    Case(
+                        When(
+                            vacancies__salary__salary_from__isnull=False,
+                            vacancies__salary__salary_to__isnull=False,
+                            then=(F('vacancies__salary__salary_from') + F('vacancies__salary__salary_to')) / 2
+                        ),
+                        When(
+                            vacancies__salary__salary_from__isnull=False,
+                            vacancies__salary__salary_to__isnull=True,
+                            then=F('vacancies__salary__salary_from')
+                        ),
+                        When(
+                            vacancies__salary__salary_from__isnull=True,
+                            vacancies__salary__salary_to__isnull=False,
+                            then=F('vacancies__salary__salary_to')
+                        ),
+                        output_field=FloatField(),
+                    )
+                ), output_field=IntegerField()
+            )
+        ).order_by('-count_vac'),
+        hh_employer_id=hh_employer_id
+    )
+    context = {
+        'employer': employer,
+        'vacancies': vacancies,
+    }
+    return render(request, 'hh_app/employer.html', context)
