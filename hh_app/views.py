@@ -6,7 +6,7 @@ from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy, WorkSchedule
-from hh_app.services.helpers import get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
+from hh_app.services.helpers import add_percentage, get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
 from hh_app.forms import CitySearch, SearchQueryForm
 
 # Create your views here.
@@ -84,6 +84,10 @@ def detail_statistics(request, search_query):
 
 
 def cities_statistics(request):
+    areas = Area.objects.values('name').annotate(count=Count('vacancies')).order_by('-count')[:3]
+    count_all_vacancies = Vacancy.objects.all().count()
+    stat = add_percentage(areas, count_all_vacancies)
+
     form = CitySearch()
     cities = None
     if request.method == 'POST':
@@ -115,11 +119,12 @@ def cities_statistics(request):
                             output_field=FloatField(),
                         )
                     ), output_field=IntegerField())
-                ).filter(name__contains=cd)
+                ).filter(name__icontains=cd)
             )
     context = {
         'form': form,
-        'cities': cities
+        'cities': cities,
+        'top_three_cities': stat,
     }
     return render(request, 'hh_app/cities.html', context)
 

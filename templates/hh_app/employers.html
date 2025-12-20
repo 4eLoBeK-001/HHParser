@@ -4,70 +4,98 @@
 <div id="content" class="max-w-6xl mx-auto mt-12 p-6 space-y-12">
 
 
-<!-- Заголовок -->
-<h1 class="text-center text-5xl font-extrabold text-orange-600">
-    Рейтинг работодателей
-</h1>
+    <!-- Заголовок -->
+    <div class="grid grid-cols-[auto_1fr_auto] items-center mb-8">
 
+        <!-- Кнопка назад -->
+        <button
+            type="button"
+            onclick="window.history.back()"
+            class="btn btn-outline btn-warning gap-2"
+            aria-label="Назад"
+        >
+            <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15 19l-7-7 7-7"
+                />
+            </svg>
+            Назад
+        </button>
 
-<!-- Инфо-блок над списком -->
-<div class="bg-orange-50 border border-orange-200 rounded-2xl p-8 shadow">
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 text-center">
-        <div>
-        </div>
-        <div>
-            <p class="text-4xl font-bold text-orange-600">{{employers_count}}</p>
-            <p class="text-orange-700">Всего работодателей</p>
-        </div>
-        <div>
-        </div>
-        <div>
-            <p class="text-4xl font-bold text-orange-600">+12%</p>
-            <p class="text-orange-700">Рост за месяц</p>
-        </div>
-        <div>
-        </div>
-    </div>
-</div>
+        <!-- Заголовок -->
+        <h1 class="text-center text-4xl md:text-5xl font-extrabold text-orange-600">
+            Рейтинг работодателей
+        </h1>
 
-<div class="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-10 rounded-3xl shadow-lg text-center">
-    <h2 class="text-3xl font-bold mb-4">Хотите изучить конкретного работодателя?</h2>
-    <p class="text-lg max-w-3xl mx-auto">
-        Кликните на компанию, чтобы посмотреть подробнее
-    </p>
-</div>
-<!-- Список работодателей -->
-<div class="bg-white border border-orange-200 rounded-3xl shadow-xl overflow-hidden">
-
-    <div class="bg-gradient-to-r from-orange-500 to-orange-400 p-6">
-        <h2 class="text-3xl font-bold text-white text-center">
-            Топ работодателей
-        </h2>
+        <!-- Заглушка для равновесия -->
+        <div></div>
     </div>
 
-    <ul class="divide-y divide-orange-100">
 
-        {% for employer in employers %}
-            <!-- Работодатель -->
-            <li class="flex items-center justify-between p-6 hover:bg-orange-50 transition">
-                <div class="flex items-center gap-6">
-                    <span class="text-3xl font-extrabold text-orange-500 w-10 text-center">{{forloop.counter}}</span>
-                    <div>
-                        <a href="{% url 'hh_app:employer_detailed' employer.hh_employer_id %}" class="text-2xl font-bold text-gray-800">{{employer.name}}</a>
+
+    <!-- Инфо-блок над списком -->
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl p-8 shadow">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 text-center">
+            <div>
+            </div>
+            <div>
+                <p class="text-4xl font-bold text-orange-600">{{employers_count}}</p>
+                <p class="text-orange-700">Всего работодателей</p>
+            </div>
+            <div>
+            </div>
+            <div>
+                <p class="text-4xl font-bold text-orange-600">+12%</p>
+                <p class="text-orange-700">Рост за месяц</p>
+            </div>
+            <div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-10 rounded-3xl shadow-lg text-center">
+        <h2 class="text-3xl font-bold mb-4">Хотите изучить конкретного работодателя?</h2>
+        <p class="text-lg max-w-3xl mx-auto">
+            Кликните на компанию, чтобы посмотреть подробнее
+        </p>
+    </div>
+    <!-- Список работодателей -->
+    <div class="bg-white border border-orange-200 rounded-3xl shadow-xl overflow-hidden">
+
+        <div class="bg-gradient-to-r from-orange-500 to-orange-400 p-6">
+            <h2 class="text-3xl font-bold text-white text-center">
+                Топ работодателей
+            </h2>
+        </div>
+
+        <ul class="divide-y divide-orange-100">
+
+            {% for employer in employers %}
+                <!-- Работодатель -->
+                <li class="flex items-center justify-between p-6 hover:bg-orange-50 transition">
+                    <div class="flex items-center gap-6">
+                        <span class="text-3xl font-extrabold text-orange-500 w-10 text-center">{{forloop.counter}}</span>
+                        <div>
+                            <a href="{% url 'hh_app:employer_detailed' employer.hh_employer_id %}" class="text-2xl font-bold text-gray-800">{{employer.name}}</a>
+                        </div>
                     </div>
-                </div>
-                <div class="text-right">
-                    <p class="text-xl font-bold text-orange-600">{{employer.count_vac}} вакансий</p>
-                    <p class="text-sm text-gray-500">Средняя ЗП: {{employer.avg_salary}} ₽</p>
-                </div>
-            </li>
-        {% endfor %}
-        
-    </ul>
-</div>
-
-
-
+                    <div class="text-right">
+                        <p class="text-xl font-bold text-orange-600">{{employer.count_vac}} вакансий</p>
+                        <p class="text-sm text-gray-500">Средняя ЗП: {{employer.avg_salary}} ₽</p>
+                    </div>
+                </li>
+            {% endfor %}
+            
+        </ul>
+    </div>
 
 </div>
 
