@@ -7,7 +7,7 @@ from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy, WorkSchedule
 from hh_app.services.helpers import get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
-from hh_parser.forms import SearchQueryForm
+from hh_app.forms import CitySearch, SearchQueryForm
 
 # Create your views here.
 
@@ -84,7 +84,44 @@ def detail_statistics(request, search_query):
 
 
 def cities_statistics(request):
-    return render(request, 'hh_app/cities.html')
+    form = CitySearch()
+    cities = None
+    if request.method == 'POST':
+        form = CitySearch(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data['name']
+            cities = (
+                Area.objects
+                .annotate(
+                    vac_count=Count('vacancies'), 
+                    avg_salary=Cast(Avg(
+                        Case(
+                            When(
+                                vacancies__salary__salary_from__isnull=False,
+                                vacancies__salary__salary_to__isnull=False,
+                                then=(F('vacancies__salary__salary_from') + F('vacancies__salary__salary_to')) / 2
+                            ),
+                            When(
+                                vacancies__salary__salary_from__isnull=False,
+                                vacancies__salary__salary_to__isnull=True,
+                                then=F('vacancies__salary__salary_from')
+                            ),
+                            When(
+                                vacancies__salary__salary_from__isnull=True,
+                                vacancies__salary__salary_to__isnull=False,
+                                then=F('vacancies__salary__salary_to')
+                            ),
+                            default=None,
+                            output_field=FloatField(),
+                        )
+                    ), output_field=IntegerField())
+                ).filter(name__contains=cd)
+            )
+    context = {
+        'form': form,
+        'cities': cities
+    }
+    return render(request, 'hh_app/cities.html', context)
 
 
 def city_statistics(request, area_name):
