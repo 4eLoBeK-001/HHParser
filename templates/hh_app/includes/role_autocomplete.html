@@ -1,0 +1,17 @@
+{% if roles %}
+    {% for role in roles %}
+        <li
+            class="px-4 py-3 hover:bg-orange-50 cursor-pointer transition"
+            hx-on="click:
+                document.querySelector('[name=role_name]').value='{{ role.name }}';
+                document.getElementById('role-id').value='{{ role.id }}';
+                document.getElementById('role-results').innerHTML='';"
+        >
+            {{ role.name }}
+        </li>
+    {% endfor %}
+{% else %}
+    <li class="px-4 py-3 text-gray-500">
+        Ничего не найдено
+    </li>
+{% endif %}

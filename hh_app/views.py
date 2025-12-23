@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case, Value, Min, Max
 from django.db.models.functions import Round, Cast
 
-from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy, WorkSchedule
+from hh_app.models import Area, Employer, Experience, ProfessionalRole, SearchQuery, Vacancy, WorkSchedule
 from hh_app.services.helpers import add_percentage, avg_salary_expression, get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
 from hh_app.forms import CitySearch, SearchQueryForm
 
@@ -204,6 +204,7 @@ def custom_filters(request):
     }
     return render(request, 'hh_app/custom_filters.html', context)
 
+
 def area_autocomplete(request):
     query = request.GET.get('area_name', '').strip()
 
@@ -216,6 +217,7 @@ def area_autocomplete(request):
         'areas': areas
     }
     return render(request, 'hh_app/includes/area_autocomplete.html', context)
+
 
 def employer_autocomplete(request):
     query = request.GET.get('employer_name', '').strip()
@@ -231,3 +233,20 @@ def employer_autocomplete(request):
         'employers': employers
     }
     return render(request, 'hh_app/includes/employer_autocomplete.html', context)
+
+
+def role_autocomplete(request):
+    query = request.GET.get('role_name', '').strip()
+
+    roles = ProfessionalRole.objects.none()
+    if len(query) >= 2:
+        roles = (
+            ProfessionalRole.objects
+            .filter(name__icontains=query)
+            .order_by('name')[:10]
+        )
+
+    context = {
+        'roles': roles
+    }
+    return render(request, 'hh_app/includes/role_autocomplete.html', context)
