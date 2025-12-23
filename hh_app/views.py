@@ -196,3 +196,23 @@ def employer_detailed(request, hh_employer_id):
         'vacancies': vacancies,
     }
     return render(request, 'hh_app/employer.html', context)
+
+
+def custom_filters(request):
+
+    context = {
+    }
+    return render(request, 'hh_app/custom_filters.html', context)
+
+def area_autocomplete(request):
+    query = request.GET.get('area_name', '').strip()
+
+    areas = (
+        Area.objects
+        .filter(name__icontains=query)
+        .order_by('name')[:10]
+    )
+    context = {
+        'areas': areas
+    }
+    return render(request, 'hh_app/includes/area_autocomplete.html', context)

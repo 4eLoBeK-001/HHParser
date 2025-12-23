@@ -1,0 +1,17 @@
+{% if areas %}
+    {% for area in areas %}
+        <li
+            class="px-4 py-3 hover:bg-emerald-50 cursor-pointer transition"
+            hx-on="click:
+                document.querySelector('[name=area_name]').value='{{ area.name }}';
+                document.getElementById('area-id').value='{{ area.id }}';
+                document.getElementById('area-results').innerHTML='';"
+        >
+            {{ area.name }}
+        </li>
+    {% endfor %}
+{% else %}
+    <li class="px-4 py-3 text-gray-500">
+        Ничего не найдено
+    </li>
+{% endif %}

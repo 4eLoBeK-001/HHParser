@@ -15,4 +15,7 @@ urlpatterns = [
 
     path('employers/', views.employers_list, name='employers_list'),
     path('employer/<hh_employer_id>/', views.employer_detailed, name='employer_detailed'),
+
+    path('custom/', views.custom_filters, name='custom_filters'),
+    path('htmx/areas/', views.area_autocomplete, name='area_autocomplete'),
 ]
