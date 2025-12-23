@@ -6,7 +6,7 @@ from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, SearchQuery, Vacancy, WorkSchedule
-from hh_app.services.helpers import add_percentage, get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
+from hh_app.services.helpers import add_percentage, avg_salary_expression, get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
 from hh_app.forms import CitySearch, SearchQueryForm
 
 # Create your views here.
@@ -98,29 +98,11 @@ def cities_statistics(request):
                 Area.objects
                 .annotate(
                     vac_count=Count('vacancies'), 
-                    avg_salary=Cast(Avg(
-                        Case(
-                            When(
-                                vacancies__salary__salary_from__isnull=False,
-                                vacancies__salary__salary_to__isnull=False,
-                                then=(F('vacancies__salary__salary_from') + F('vacancies__salary__salary_to')) / 2
-                            ),
-                            When(
-                                vacancies__salary__salary_from__isnull=False,
-                                vacancies__salary__salary_to__isnull=True,
-                                then=F('vacancies__salary__salary_from')
-                            ),
-                            When(
-                                vacancies__salary__salary_from__isnull=True,
-                                vacancies__salary__salary_to__isnull=False,
-                                then=F('vacancies__salary__salary_to')
-                            ),
-                            default=None,
-                            output_field=FloatField(),
-                        )
-                    ), output_field=IntegerField())
+                    avg_salary=Cast(Avg(avg_salary_expression())
+                    ), output_field=IntegerField()
                 ).filter(name__icontains=cd)
             )
+            
     context = {
         'form': form,
         'cities': cities,
@@ -136,27 +118,8 @@ def city_statistics(request, area_name):
         Vacancy.objects
         .filter(area=area, salary__currency='RUR')
         .aggregate(
-            avg_salary=Cast(Avg(
-                Case(
-                    When(
-                        salary__salary_from__isnull=False,
-                        salary__salary_to__isnull=False,
-                        then=(F('salary__salary_from') + F('salary__salary_to')) / 2
-                    ),
-                    When(
-                        salary__salary_from__isnull=False,
-                        salary__salary_to__isnull=True,
-                        then=F('salary__salary_from')
-                    ),
-                    When(
-                        salary__salary_from__isnull=True,
-                        salary__salary_to__isnull=False,
-                        then=F('salary__salary_to')
-                    ),
-                    default=None,
-                    output_field=FloatField(),
-                )
-            ), output_field=IntegerField())
+            avg_salary=Cast(Avg(avg_salary_expression()), output_field=IntegerField()
+            )
         )
     )
     count_vacancies = get_count_vacancies(area=area)
@@ -202,29 +165,10 @@ def employers_list(request):
         .annotate(
             count_vac=Count('vacancies', distinct=True),
             avg_salary=Cast(
-                Avg(
-                    Case(
-                        When(
-                            vacancies__salary__salary_from__isnull=False,
-                            vacancies__salary__salary_to__isnull=False,
-                            then=(F('vacancies__salary__salary_from') + F('vacancies__salary__salary_to')) / 2
-                        ),
-                        When(
-                            vacancies__salary__salary_from__isnull=False,
-                            vacancies__salary__salary_to__isnull=True,
-                            then=F('vacancies__salary__salary_from')
-                        ),
-                        When(
-                            vacancies__salary__salary_from__isnull=True,
-                            vacancies__salary__salary_to__isnull=False,
-                            then=F('vacancies__salary__salary_to')
-                        ),
-                        output_field=FloatField(),
-                    )
-                ), output_field=IntegerField()
+                Avg(avg_salary_expression(prefix='vacancies__salary')), output_field=IntegerField()
+                )
             )
         ).order_by('-count_vac')
-    )
     context = {
         'employers_count': employers.count(),
         'employers': employers[:75],
@@ -241,30 +185,12 @@ def employer_detailed(request, hh_employer_id):
             cities_count=Count('vacancies__area', distinct=True),
             prof_roles_count=Count('vacancies__professional_roles', distinct=True),
             avg_salary=Cast(
-                Avg(
-                    Case(
-                        When(
-                            vacancies__salary__salary_from__isnull=False,
-                            vacancies__salary__salary_to__isnull=False,
-                            then=(F('vacancies__salary__salary_from') + F('vacancies__salary__salary_to')) / 2
-                        ),
-                        When(
-                            vacancies__salary__salary_from__isnull=False,
-                            vacancies__salary__salary_to__isnull=True,
-                            then=F('vacancies__salary__salary_from')
-                        ),
-                        When(
-                            vacancies__salary__salary_from__isnull=True,
-                            vacancies__salary__salary_to__isnull=False,
-                            then=F('vacancies__salary__salary_to')
-                        ),
-                        output_field=FloatField(),
-                    )
-                ), output_field=IntegerField()
-            )
-        ).order_by('-count_vac'),
-        hh_employer_id=hh_employer_id
-    )
+                Avg(avg_salary_expression(prefix='vacancies__salary')), output_field=IntegerField()
+                )
+            ).order_by('-count_vac'),
+            hh_employer_id=hh_employer_id
+        )
+        
     context = {
         'employer': employer,
         'vacancies': vacancies,

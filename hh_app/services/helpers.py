@@ -195,3 +195,30 @@ def get_professional_roles_statistics(
     professional_role_statistics = add_percentage(professional_role_counts, count_vacancies)
 
     return professional_role_statistics[:limit]
+
+
+def avg_salary_expression(prefix='salary'):
+    return Case(
+        When(
+            **{
+                f'{prefix}__salary_from__isnull': False,
+                f'{prefix}__salary_to__isnull': False,
+            },
+            then=(F(f'{prefix}__salary_from') + F(f'{prefix}__salary_to')) / 2
+        ),
+        When(
+            **{
+                f'{prefix}__salary_from__isnull': False,
+                f'{prefix}__salary_to__isnull': True,
+            },
+            then=F(f'{prefix}__salary_from')
+        ),
+        When(
+            **{
+                f'{prefix}__salary_from__isnull': True,
+                f'{prefix}__salary_to__isnull': False,
+            },
+            then=F(f'{prefix}__salary_to')
+        ),
+        output_field=FloatField(),
+    )
