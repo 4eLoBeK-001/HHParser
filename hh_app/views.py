@@ -216,3 +216,18 @@ def area_autocomplete(request):
         'areas': areas
     }
     return render(request, 'hh_app/includes/area_autocomplete.html', context)
+
+def employer_autocomplete(request):
+    query = request.GET.get('employer_name', '').strip()
+
+    employers = Employer.objects.none()
+    if len(query) >= 2:
+        employers = (
+            Employer.objects
+            .filter(name__icontains=query)
+            .order_by('name')[:10]
+        )
+    context = {
+        'employers': employers
+    }
+    return render(request, 'hh_app/includes/employer_autocomplete.html', context)

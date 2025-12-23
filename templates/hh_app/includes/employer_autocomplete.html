@@ -1,0 +1,17 @@
+{% if employers %}
+    {% for employer in employers %}
+        <li
+            class="px-4 py-3 hover:bg-orange-50 cursor-pointer transition"
+            hx-on="click:
+                document.querySelector('[name=employer_name]').value='{{ employer.name }}';
+                document.getElementById('employer-id').value='{{ employer.id }}';
+                document.getElementById('employer-results').innerHTML='';"
+        >
+            {{ employer.name }}
+        </li>
+    {% endfor %}
+{% else %}
+    <li class="px-4 py-3 text-gray-500">
+        Ничего не найдено
+    </li>
+{% endif %}
