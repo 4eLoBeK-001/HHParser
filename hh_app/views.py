@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case, Value, Min, Max
 from django.db.models.functions import Round, Cast
 
-from hh_app.models import Area, Employer, Experience, ProfessionalRole, SearchQuery, Vacancy, WorkSchedule
+from hh_app.models import Area, Employer, Experience, ProfessionalRole, SearchQuery, Vacancy, WorkFormat, WorkSchedule
 from hh_app.services.helpers import add_percentage, avg_salary_expression, get_avg_salary, get_count_vacancies, get_professional_roles_statistics, get_skill_statistics, get_work_format_statistics
 from hh_app.forms import CitySearch, SearchQueryForm
 
@@ -199,8 +199,21 @@ def employer_detailed(request, hh_employer_id):
 
 
 def custom_filters(request):
+    experiences = Experience.objects.all()
+    work_formats = WorkFormat.objects.all()
+
+    area_name = request.GET.get('area_name')
+    employer_name = request.GET.get('employer_name')
+    role_name = request.GET.get('role_name')
+    experience = request.GET.get('experience')
+    work_format = request.GET.get('work_format')
+    salary_from = request.GET.get('salary_from')
+    salary_to = request.GET.get('salary_to')
+
 
     context = {
+        'experiences': experiences,
+        'work_formats': work_formats,
     }
     return render(request, 'hh_app/custom_filters.html', context)
 

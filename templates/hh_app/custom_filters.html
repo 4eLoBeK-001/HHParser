@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div id="content" class="max-w-7xl mx-auto mt-12 p-6 space-y-12">
+<div id="content" class="max-w-7xl mx-auto mt-12 p-6 space-y-14">
 
     <!-- Заголовок -->
-    <div class="grid grid-cols-[auto_1fr_auto] items-center mb-6">
+    <div class="grid grid-cols-[auto_1fr_auto] items-center">
 
         <button
             type="button"
             onclick="window.history.back()"
-            class="btn btn-outline btn-warning gap-2"
+            class="btn btn-outline border-slate-300 text-slate-600 hover:bg-slate-100 gap-2"
             aria-label="Назад"
         >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -18,7 +18,7 @@
             Назад
         </button>
 
-        <h1 class="text-center text-4xl md:text-5xl font-extrabold text-orange-600">
+        <h1 class="text-center text-4xl md:text-5xl font-extrabold text-slate-800">
             Детальная статистика вакансий
         </h1>
 
@@ -26,137 +26,128 @@
     </div>
 
     <!-- Описание -->
-    <div class="bg-orange-50 border border-orange-200 rounded-3xl p-8 shadow text-center">
-        <p class="text-lg text-orange-800 max-w-4xl mx-auto">
-            Настройте фильтры ниже и получите подробную аналитику по вакансиям.
+    <div class="bg-slate-50 border border-slate-200 rounded-3xl p-8 shadow-sm text-center">
+        <p class="text-lg text-slate-600 max-w-4xl mx-auto">
+            Сформируйте срез рынка вакансий с помощью гибких фильтров.
         </p>
     </div>
 
     <!-- ФИЛЬТРЫ -->
-    <form method="get" class="bg-white border border-orange-200 rounded-3xl shadow-xl p-10 space-y-10">
+    <form method="get" class="bg-white border border-slate-200 rounded-3xl shadow-xl p-10 space-y-12">
 
-        <h2 class="text-3xl font-bold text-gray-800 text-center">
-            Фильтры
+        <h2 class="text-3xl font-bold text-slate-800 text-center">
+            Параметры выборки
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
+            {% comment %} Унифицированные стили инпутов {% endcomment %}
+            {% with input_classes="input input-bordered w-full text-slate-800 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-500" %}
+
             <!-- Город -->
             <div class="relative">
-                <label class="block font-semibold text-gray-700 mb-2">
-                    Город
+                <label class="label">
+                    <span class="label-text font-semibold text-slate-700">Город</span>
                 </label>
-            
-                <!-- Текстовый ввод -->
+
                 <input
                     type="text"
                     name="area_name"
                     placeholder="Начните вводить город…"
                     autocomplete="off"
-            
                     hx-get="{% url 'hh_app:area_autocomplete' %}"
                     hx-trigger="keyup changed delay:300ms"
                     hx-target="#area-results"
                     hx-indicator="#area-loader"
-            
-                    class="w-full rounded-xl border-gray-300 px-4 py-3
-                           focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
+                    class="{{ input_classes }}"
                 >
-            
-                <!-- Скрытое поле с ID -->
+
                 <input type="hidden" name="area" id="area-id">
-            
-                <!-- Loader -->
-                <div
-                    id="area-loader"
-                    class="absolute right-4 top-11 htmx-indicator"
-                >
-                    <span class="loading loading-spinner loading-sm text-emerald-500"></span>
+
+                <div id="area-loader" class="absolute right-4 top-12 htmx-indicator">
+                    <span class="loading loading-spinner loading-sm text-indigo-500"></span>
                 </div>
-            
-                <!-- Выпадающий список -->
+
                 <ul
                     id="area-results"
-                    class="absolute z-20 w-full bg-white border border-gray-200
-                           rounded-xl mt-2 shadow-lg max-h-60 overflow-y-auto"
+                    class="absolute z-20 w-full bg-white border border-slate-200
+                           rounded-xl mt-2 shadow-xl max-h-60 overflow-y-auto
+                           divide-y divide-slate-100"
                 ></ul>
             </div>
-            
 
             <!-- Работодатель -->
             <div class="relative">
-                <label class="block font-semibold text-gray-700 mb-2">
-                    Работодатель
+                <label class="label">
+                    <span class="label-text font-semibold text-slate-700">Работодатель</span>
                 </label>
-            
+
                 <input
                     type="text"
                     name="employer_name"
                     placeholder="Начните вводить работодателя…"
                     autocomplete="off"
-            
                     hx-get="{% url 'hh_app:employer_autocomplete' %}"
                     hx-trigger="keyup changed delay:300ms"
                     hx-target="#employer-results"
                     hx-indicator="#employer-loader"
-                    hx-on="input: document.getElementById('employer-id').value='';"
-            
-                    class="w-full rounded-xl border-gray-300 px-4 py-3"
+                    class="{{ input_classes }}"
                 >
-            
+
                 <input type="hidden" name="employer" id="employer-id">
-            
-                <div id="employer-loader" class="absolute right-4 top-11 htmx-indicator">
-                    <span class="loading loading-spinner loading-sm text-orange-500"></span>
+
+                <div id="employer-loader" class="absolute right-4 top-12 htmx-indicator">
+                    <span class="loading loading-spinner loading-sm text-indigo-500"></span>
                 </div>
-            
+
                 <ul
                     id="employer-results"
-                    class="absolute z-20 w-full bg-white border border-gray-200
-                           rounded-xl mt-2 shadow-lg max-h-60 overflow-y-auto"
+                    class="absolute z-20 w-full bg-white border border-slate-200
+                           rounded-xl mt-2 shadow-xl max-h-60 overflow-y-auto
+                           divide-y divide-slate-100"
                 ></ul>
             </div>
-            
 
-            <!-- Проф. роль -->
+            <!-- Роль -->
             <div class="relative">
-                <label class="block font-semibold text-gray-700 mb-2">
-                    Профессиональная роль
+                <label class="label">
+                    <span class="label-text font-semibold text-slate-700">Профессиональная роль</span>
                 </label>
-            
+
                 <input
                     type="text"
                     name="role_name"
                     placeholder="Начните вводить роль…"
                     autocomplete="off"
-            
                     hx-get="{% url 'hh_app:role_autocomplete' %}"
                     hx-trigger="keyup changed delay:300ms"
                     hx-target="#role-results"
                     hx-indicator="#role-loader"
-                    hx-on="input: document.getElementById('role-id').value='';"
-            
-                    class="w-full rounded-xl border-gray-300 px-4 py-3"
+                    class="{{ input_classes }}"
                 >
-            
+
                 <input type="hidden" name="role" id="role-id">
-            
-                <div id="role-loader" class="absolute right-4 top-11 htmx-indicator">
-                    <span class="loading loading-spinner loading-sm text-orange-500"></span>
+
+                <div id="role-loader" class="absolute right-4 top-12 htmx-indicator">
+                    <span class="loading loading-spinner loading-sm text-indigo-500"></span>
                 </div>
-            
+
                 <ul
                     id="role-results"
-                    class="absolute z-20 w-full bg-white border border-gray-200
-                           rounded-xl mt-2 shadow-lg max-h-60 overflow-y-auto"
+                    class="absolute z-20 w-full bg-white border border-slate-200
+                           rounded-xl mt-2 shadow-xl max-h-60 overflow-y-auto
+                           divide-y divide-slate-100"
                 ></ul>
             </div>
-            
 
-            <!-- Опыт -->
+            {% endwith %}
+
+            <!-- Селекты -->
             <div>
-                <label class="block text-gray-700 font-semibold mb-2">Опыт работы</label>
-                <select name="experience" class="w-full rounded-xl border-gray-300 focus:ring-orange-400 focus:border-orange-400">
+                <label class="label">
+                    <span class="label-text font-semibold text-slate-700">Опыт работы</span>
+                </label>
+                <select name="experience" class="select select-bordered w-full text-slate-500 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     <option value="">Любой</option>
                     {% for exp in experiences %}
                         <option value="{{ exp.id }}">{{ exp.name }}</option>
@@ -164,10 +155,11 @@
                 </select>
             </div>
 
-            <!-- Формат работы -->
             <div>
-                <label class="block text-gray-700 font-semibold mb-2">Формат работы</label>
-                <select name="work_format" class="w-full rounded-xl border-gray-300 focus:ring-orange-400 focus:border-orange-400">
+                <label class="label">
+                    <span class="label-text font-semibold text-slate-700">Формат работы</span>
+                </label>
+                <select name="work_format" class="select select-bordered text-slate-500 w-full bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     <option value="">Любой</option>
                     {% for wf in work_formats %}
                         <option value="{{ wf.id }}">{{ wf.name }}</option>
@@ -177,13 +169,13 @@
 
             <!-- Зарплата -->
             <div>
-                <label class="block text-gray-700 font-semibold mb-2">Минимальная зарплата</label>
-                <input
-                    type="number"
-                    name="salary_from"
-                    placeholder="₽"
-                    class="w-full rounded-xl border-gray-300 focus:ring-orange-400 focus:border-orange-400"
-                >
+                <label class="label">
+                    <span class="label-text font-semibold text-slate-700">Зарплата (₽)</span>
+                </label>
+                <div class="grid grid-cols-2 gap-4">
+                    <input name="salary_from" type="number" placeholder="От" class="input input-bordered text-slate-700 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
+                    <input name="salary_to" type="number" placeholder="До" class="input input-bordered text-slate-700 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
+                </div>
             </div>
 
         </div>
@@ -192,55 +184,29 @@
         <div class="text-center pt-6">
             <button
                 type="submit"
-                class="px-12 py-4 bg-gradient-to-r from-orange-600 to-orange-400
-                       text-white text-xl font-bold rounded-full
-                       shadow-md hover:shadow-lg transition"
+                class="btn btn-lg rounded-full px-16 shadow-lg
+                       bg-gradient-to-r from-indigo-600 to-violet-600
+                       text-white hover:from-indigo-500 hover:to-violet-500"
             >
-                Найти
+                Поиск
             </button>
         </div>
 
     </form>
-
+<!-- 
     <!-- РЕЗУЛЬТАТЫ -->
     {% if statistics %}
-
-    <!-- Ключевые показатели -->
     <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
-
-        <div class="bg-green-50 border border-green-200 p-6 rounded-2xl shadow">
-            <p class="text-gray-600">Вакансий найдено</p>
-            <p class="text-4xl font-extrabold text-green-700">{{ statistics.count }}</p>
+        {% for label, value in statistics.items %}
+        <div class="stat bg-emerald-50 border border-emerald-200 rounded-2xl shadow">
+            <div class="stat-title">{{ label }}</div>
+            <div class="stat-value text-emerald-700">{{ value }}</div>
         </div>
-
-        <div class="bg-green-50 border border-green-200 p-6 rounded-2xl shadow">
-            <p class="text-gray-600">Средняя зарплата</p>
-            <p class="text-4xl font-extrabold text-green-700">{{ statistics.avg_salary }} ₽</p>
-        </div>
-
-        <div class="bg-green-50 border border-green-200 p-6 rounded-2xl shadow">
-            <p class="text-gray-600">Работодателей</p>
-            <p class="text-4xl font-extrabold text-green-700">{{ statistics.employers }}</p>
-        </div>
-
-        <div class="bg-green-50 border border-green-200 p-6 rounded-2xl shadow">
-            <p class="text-gray-600">Навыков</p>
-            <p class="text-4xl font-extrabold text-green-700">{{ statistics.skills }}</p>
-        </div>
-
+        {% endfor %}
     </section>
-
-    {% else %}
-        <div class="bg-gradient-to-r from-orange-600 to-orange-400 text-white p-10 rounded-3xl shadow text-center">
-            <h2 class="text-3xl font-bold mb-4">
-                Выберите фильтры
-            </h2>
-            <p class="text-lg">
-                Заполните параметры выше и нажмите «Найти», чтобы увидеть аналитику
-            </p>
-        </div>
-    {% endif %}
+    {% endif %} 
+-->
 
 </div>
 
-{% endblock content %}
+{% endblock %}
