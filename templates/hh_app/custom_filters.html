@@ -33,8 +33,8 @@
     </div>
 
     <!-- ФИЛЬТРЫ -->
-    <form method="get" class="bg-white border border-slate-200 rounded-3xl shadow-xl p-10 space-y-12">
-
+    <form method="post" class="bg-white border border-slate-200 rounded-3xl shadow-xl p-10 space-y-12">
+        {% csrf_token %}
         <h2 class="text-3xl font-bold text-slate-800 text-center">
             Параметры выборки
         </h2>
@@ -193,11 +193,11 @@
         </div>
 
     </form>
-<!-- 
+
     <!-- РЕЗУЛЬТАТЫ -->
-    {% if statistics %}
+    {% if vacancies %}
     <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {% for label, value in statistics.items %}
+        {% for label, value in vacancies.items %}
         <div class="stat bg-emerald-50 border border-emerald-200 rounded-2xl shadow">
             <div class="stat-title">{{ label }}</div>
             <div class="stat-value text-emerald-700">{{ value }}</div>
@@ -205,7 +205,6 @@
         {% endfor %}
     </section>
     {% endif %} 
--->
 
 </div>
 

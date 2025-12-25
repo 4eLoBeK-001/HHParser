@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, render
-from django.db.models import Count, Avg, F, FloatField, IntegerField, When, Case, Value, Min, Max
+from django.db.models import Count, Avg, F, Q, IntegerField, When, Case, Value, Min, Max
 from django.db.models.functions import Round, Cast
 
 from hh_app.models import Area, Employer, Experience, ProfessionalRole, SearchQuery, Vacancy, WorkFormat, WorkSchedule
@@ -199,21 +199,40 @@ def employer_detailed(request, hh_employer_id):
 
 
 def custom_filters(request):
+    statistics = None
+    vacancies = None
     experiences = Experience.objects.all()
     work_formats = WorkFormat.objects.all()
 
-    area_name = request.GET.get('area_name')
-    employer_name = request.GET.get('employer_name')
-    role_name = request.GET.get('role_name')
-    experience = request.GET.get('experience')
-    work_format = request.GET.get('work_format')
-    salary_from = request.GET.get('salary_from')
-    salary_to = request.GET.get('salary_to')
+    field_mapping = {
+        # Ключём служит поле для фильта в .filter
+        # Значением служит то достаётся через request.POST
+        'area__name': 'area_name',
+        'employer__name': 'employer_name',
+        'professional_roles__name': 'role_name',
+        'experience_id': 'experience',
+        'work_format_id': 'work_format',
+        'salary__salary_from__gte': 'salary_from',  # Для ЗП проверка на больше чем и меньше чем
+        'salary__salary_to__lte': 'salary_to',
+    }
 
+    filters = Q()
+
+    if request.method == 'POST':
+        for model_field, form_field in field_mapping.items():
+            value = request.POST.get(form_field)
+            if value:
+                if 'salary' in model_field:
+                    value = int(value)
+                filters &= Q(**{model_field: value})
+
+        vacancies = Vacancy.objects.filter(filters).distinct()
 
     context = {
         'experiences': experiences,
         'work_formats': work_formats,
+        'statistics': statistics,
+        'vacancies': vacancies,
     }
     return render(request, 'hh_app/custom_filters.html', context)
 
